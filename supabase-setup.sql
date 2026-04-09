@@ -3,14 +3,14 @@
 
 -- ═══════════════ TABLES ═══════════════
 
-create table subjects (
+create table if not exists subjects (
   id uuid default gen_random_uuid() primary key,
   user_id uuid references auth.users(id) on delete cascade not null,
   name text not null,
   created_at timestamptz default now()
 );
 
-create table assignments (
+create table if not exists assignments (
   id uuid default gen_random_uuid() primary key,
   user_id uuid references auth.users(id) on delete cascade not null,
   name text not null,
@@ -22,7 +22,7 @@ create table assignments (
   created_at timestamptz default now()
 );
 
-create table notes (
+create table if not exists notes (
   id uuid default gen_random_uuid() primary key,
   user_id uuid references auth.users(id) on delete cascade not null,
   title text not null,
@@ -31,7 +31,7 @@ create table notes (
   created_at timestamptz default now()
 );
 
-create table note_files (
+create table if not exists note_files (
   id uuid default gen_random_uuid() primary key,
   note_id uuid references notes(id) on delete cascade not null,
   file_name text not null,
@@ -41,7 +41,7 @@ create table note_files (
   created_at timestamptz default now()
 );
 
-create table schedule_events (
+create table if not exists schedule_events (
   id uuid default gen_random_uuid() primary key,
   user_id uuid references auth.users(id) on delete cascade not null,
   name text not null,
@@ -56,7 +56,7 @@ create table schedule_events (
   created_at timestamptz default now()
 );
 
-create table exams (
+create table if not exists exams (
   id uuid default gen_random_uuid() primary key,
   user_id uuid references auth.users(id) on delete cascade not null,
   name text not null,
@@ -70,7 +70,7 @@ create table exams (
   created_at timestamptz default now()
 );
 
-create table tasks (
+create table if not exists tasks (
   id uuid default gen_random_uuid() primary key,
   user_id uuid references auth.users(id) on delete cascade not null,
   name text not null,
@@ -91,6 +91,17 @@ alter table note_files enable row level security;
 alter table schedule_events enable row level security;
 alter table exams enable row level security;
 alter table tasks enable row level security;
+
+-- Drop existing policies if re-running
+do $$ begin
+  drop policy if exists "Users manage own subjects" on subjects;
+  drop policy if exists "Users manage own assignments" on assignments;
+  drop policy if exists "Users manage own notes" on notes;
+  drop policy if exists "Users manage own note_files" on note_files;
+  drop policy if exists "Users manage own schedule_events" on schedule_events;
+  drop policy if exists "Users manage own exams" on exams;
+  drop policy if exists "Users manage own tasks" on tasks;
+end $$;
 
 create policy "Users manage own subjects" on subjects
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
@@ -113,23 +124,3 @@ create policy "Users manage own exams" on exams
 
 create policy "Users manage own tasks" on tasks
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
-
--- ═══════════════ STORAGE ═══════════════
-
-insert into storage.buckets (id, name, public)
-values ('note-files', 'note-files', false);
-
-create policy "Users upload own files" on storage.objects
-  for insert with check (
-    bucket_id = 'note-files' and auth.uid()::text = (storage.foldername(name))[1]
-  );
-
-create policy "Users view own files" on storage.objects
-  for select using (
-    bucket_id = 'note-files' and auth.uid()::text = (storage.foldername(name))[1]
-  );
-
-create policy "Users delete own files" on storage.objects
-  for delete using (
-    bucket_id = 'note-files' and auth.uid()::text = (storage.foldername(name))[1]
-  );

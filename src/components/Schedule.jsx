@@ -3,9 +3,10 @@ import { HOURS, DAYS, DAYS_FULL, fmtH, toISO, today, isSameDay } from '../consta
 import { SubjectSelect } from './SubjectManager';
 import { S } from '../styles';
 
-export default function Schedule({ D, form, setForm, addEvent, deleteEvent }) {
+export default function Schedule({ D, form, setForm, addEvent, deleteEvent, updateEvent }) {
   const [view, setView] = useState("daily");
   const [refDate, setRefDate] = useState(new Date());
+  const [editing, setEditing] = useState(null);
 
   const nav = (dir) => {
     const d = new Date(refDate);
@@ -24,12 +25,21 @@ export default function Schedule({ D, form, setForm, addEvent, deleteEvent }) {
     }).sort((a, b) => a.startHour - b.startHour || a.startMin - b.startMin);
   };
 
+  const handleEdit = (ev) => { setEditing(ev); setForm(null); };
+
   return (
     <div style={S.page}>
       <div style={S.pageHead}><h1 style={S.pageTitle}>Schedule</h1>
-        <button style={S.primaryBtn} onClick={() => setForm(form === "schedule" ? null : "schedule")}>{form === "schedule" ? "✕ Cancel" : "+ Add Event"}</button>
+        <button style={S.primaryBtn} onClick={() => { setForm(form === "schedule" ? null : "schedule"); setEditing(null); }}>
+          {form === "schedule" && !editing ? "✕ Cancel" : "+ Add Event"}
+        </button>
       </div>
-      {form === "schedule" && <ScheduleForm subjects={D.subjects} onAdd={e => { addEvent(e); setForm(null); }} />}
+      {(form === "schedule" || editing) && (
+        <ScheduleForm subjects={D.subjects} editing={editing}
+          onAdd={e => { addEvent(e); setForm(null); }}
+          onSave={(id, fields) => { updateEvent(id, fields); setEditing(null); }}
+          onCancel={() => { setEditing(null); setForm(null); }} />
+      )}
 
       <div style={S.schedNav}>
         <div style={S.viewTabs}>
@@ -51,14 +61,14 @@ export default function Schedule({ D, form, setForm, addEvent, deleteEvent }) {
         </div>
       </div>
 
-      {view === "daily" && <DailyView events={getEventsForDay(refDate)} deleteEvent={deleteEvent} />}
-      {view === "weekly" && <WeeklyView refDate={refDate} getEventsForDay={getEventsForDay} deleteEvent={deleteEvent} />}
+      {view === "daily" && <DailyView events={getEventsForDay(refDate)} deleteEvent={deleteEvent} onEdit={handleEdit} />}
+      {view === "weekly" && <WeeklyView refDate={refDate} getEventsForDay={getEventsForDay} deleteEvent={deleteEvent} onEdit={handleEdit} />}
       {view === "monthly" && <MonthlyView refDate={refDate} getEventsForDay={getEventsForDay} />}
     </div>
   );
 }
 
-function DailyView({ events, deleteEvent }) {
+function DailyView({ events, deleteEvent, onEdit }) {
   return (
     <div style={S.dailyGrid}>
       {HOURS.map(h => {
@@ -78,6 +88,7 @@ function DailyView({ events, deleteEvent }) {
                       <span style={{ fontSize: 11, color: "#aaa" }}>{e.duration}min {e.recurring && "· recurring"}</span>
                     </div>
                   </div>
+                  <button style={S.editBtn} onClick={() => onEdit(e)} title="Edit">✎</button>
                   <button style={S.xBtn} onClick={() => deleteEvent(e.id)}>✕</button>
                 </div>
               ))}
@@ -89,13 +100,13 @@ function DailyView({ events, deleteEvent }) {
   );
 }
 
-function WeeklyView({ refDate, getEventsForDay }) {
+function WeeklyView({ refDate, getEventsForDay, onEdit }) {
   const sun = new Date(refDate);
   sun.setDate(sun.getDate() - sun.getDay());
   const days = Array.from({ length: 7 }, (_, i) => { const d = new Date(sun); d.setDate(d.getDate() + i); return d; });
 
   return (
-    <div style={S.weekGrid}>
+    <div style={S.weekGrid} data-sh="week-grid">
       {days.map((d, i) => {
         const evs = getEventsForDay(d);
         const isToday = isSameDay(d, new Date());
@@ -107,7 +118,8 @@ function WeeklyView({ refDate, getEventsForDay }) {
             </div>
             <div style={S.weekEvents}>
               {evs.map(e => (
-                <div key={e.id} style={{ ...S.weekEvent, borderLeft: `3px solid ${e.eventType === "class" ? "#457b9d" : e.eventType === "exam" || e.eventType === "quiz" ? "#c1121f" : "#d4a35a"}` }}>
+                <div key={e.id} style={{ ...S.weekEvent, borderLeft: `3px solid ${e.eventType === "class" ? "#457b9d" : e.eventType === "exam" || e.eventType === "quiz" ? "#c1121f" : "#d4a35a"}`, cursor: "pointer" }}
+                  onClick={() => onEdit(e)}>
                   <div style={{ fontSize: 10, color: "#999" }}>{fmtH(e.startHour, e.startMin)}</div>
                   <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.2 }}>{e.name}</div>
                 </div>
@@ -154,9 +166,19 @@ function MonthlyView({ refDate, getEventsForDay }) {
   );
 }
 
-function ScheduleForm({ subjects, onAdd }) {
-  const [f, setF] = useState({ name: "", subject: subjects[0] || "", eventType: "class", startHour: 9, startMin: 0, duration: 60, recurring: true, dayOfWeek: 1, date: today() });
+function ScheduleForm({ subjects, editing, onAdd, onSave, onCancel }) {
+  const initial = editing
+    ? { name: editing.name, subject: editing.subject, eventType: editing.eventType, startHour: editing.startHour, startMin: editing.startMin, duration: editing.duration, recurring: editing.recurring, dayOfWeek: editing.dayOfWeek, date: editing.date || today() }
+    : { name: "", subject: subjects[0] || "", eventType: "class", startHour: 9, startMin: 0, duration: 60, recurring: true, dayOfWeek: 1, date: today() };
+  const [f, setF] = useState(initial);
   const set = (k, v) => setF(p => ({ ...p, [k]: v }));
+
+  const handleSubmit = () => {
+    if (!f.name.trim()) return;
+    if (editing) onSave(editing.id, { ...f, name: f.name.trim() });
+    else onAdd({ ...f, name: f.name.trim() });
+  };
+
   return (
     <div style={S.formCard}>
       <input style={S.input} placeholder="Event name (e.g., Linear Algebra Lecture)..." value={f.name} onChange={e => set("name", e.target.value)} autoFocus />
@@ -189,7 +211,10 @@ function ScheduleForm({ subjects, onAdd }) {
           <input style={S.input} type="date" value={f.date} onChange={e => set("date", e.target.value)} />
         )}
       </div>
-      <button style={S.primaryBtn} onClick={() => { if (f.name.trim()) onAdd({ ...f, name: f.name.trim() }); }}>Add Event</button>
+      <div style={S.fRow}>
+        <button style={S.primaryBtn} onClick={handleSubmit}>{editing ? "Save Changes" : "Add Event"}</button>
+        {editing && <button style={S.ghostBtn} onClick={onCancel}>Cancel</button>}
+      </div>
     </div>
   );
 }

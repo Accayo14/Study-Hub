@@ -25,7 +25,7 @@ export default function Dashboard({ D, setTab }) {
         <p style={S.greetSub}>{todayStr}</p>
       </div>
 
-      <div style={S.dashGrid}>
+      <div style={S.dashGrid} data-sh="dash-grid">
         <Stat label="Pending" val={pending.length} color="#e07a5f" onClick={() => setTab("assignments")} />
         <Stat label="Due Soon" val={dueSoon.length} color="#c1121f" onClick={() => setTab("assignments")} />
         <Stat label="Upcoming Exams" val={upcomingExams.length} color="#5e60ce" onClick={() => setTab("exams")} />

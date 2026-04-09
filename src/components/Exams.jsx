@@ -3,18 +3,26 @@ import { dueInfo, toISO } from '../constants';
 import { SubjectSelect } from './SubjectManager';
 import { S } from '../styles';
 
-export default function Exams({ D, form, setForm, addExam, toggleExam, deleteExam }) {
+export default function Exams({ D, form, setForm, addExam, toggleExam, deleteExam, updateExam }) {
   const upcoming = D.exams.filter(e => !e.done).sort((a, b) => new Date(a.date) - new Date(b.date));
   const past = D.exams.filter(e => e.done);
   const [expanded, setExpanded] = useState(null);
+  const [editing, setEditing] = useState(null);
 
   return (
     <div style={S.page}>
       <div style={S.pageHead}><h1 style={S.pageTitle}>Exams</h1>
-        <button style={S.primaryBtn} onClick={() => setForm(form === "exam" ? null : "exam")}>{form === "exam" ? "✕ Cancel" : "+ Add Exam"}</button>
+        <button style={S.primaryBtn} onClick={() => { setForm(form === "exam" ? null : "exam"); setEditing(null); }}>
+          {form === "exam" && !editing ? "✕ Cancel" : "+ Add Exam"}
+        </button>
       </div>
-      {form === "exam" && <ExamForm subjects={D.subjects} onAdd={e => { addExam(e); setForm(null); }} />}
-      {upcoming.length === 0 && <p style={S.empty}>No upcoming exams. Enjoy the break!</p>}
+      {(form === "exam" || editing) && (
+        <ExamForm subjects={D.subjects} editing={editing}
+          onAdd={e => { addExam(e); setForm(null); }}
+          onSave={(id, fields) => { updateExam(id, fields); setEditing(null); }}
+          onCancel={() => { setEditing(null); setForm(null); }} />
+      )}
+      {upcoming.length === 0 && !editing && <p style={S.empty}>No upcoming exams. Enjoy the break!</p>}
       <div style={S.list}>
         {upcoming.map(e => {
           const di = dueInfo(e.date);
@@ -31,6 +39,7 @@ export default function Exams({ D, form, setForm, addExam, toggleExam, deleteExa
                     {e.time && <span style={{ fontSize: 11, color: "#888" }}>at {e.time}</span>}
                   </div>
                 </div>
+                <button style={S.editBtn} onClick={ev => { ev.stopPropagation(); setEditing(e); setForm(null); }} title="Edit">✎</button>
                 <span style={{ fontSize: 12, color: "#aaa" }}>{open ? "▲" : "▼"}</span>
                 <button style={S.xBtn} onClick={ev => { ev.stopPropagation(); deleteExam(e.id); }}>✕</button>
               </div>
@@ -63,9 +72,19 @@ export default function Exams({ D, form, setForm, addExam, toggleExam, deleteExa
   );
 }
 
-function ExamForm({ subjects, onAdd }) {
-  const [f, setF] = useState({ name: "", subject: subjects[0] || "", date: toISO(new Date(Date.now() + 14 * 864e5)), time: "09:00", venue: "", syllabus: "", notes: "" });
+function ExamForm({ subjects, editing, onAdd, onSave, onCancel }) {
+  const initial = editing
+    ? { name: editing.name, subject: editing.subject, date: editing.date, time: editing.time || '', venue: editing.venue || '', syllabus: editing.syllabus || '', notes: editing.notes || '' }
+    : { name: "", subject: subjects[0] || "", date: toISO(new Date(Date.now() + 14 * 864e5)), time: "09:00", venue: "", syllabus: "", notes: "" };
+  const [f, setF] = useState(initial);
   const set = (k, v) => setF(p => ({ ...p, [k]: v }));
+
+  const handleSubmit = () => {
+    if (!f.name.trim()) return;
+    if (editing) onSave(editing.id, { name: f.name.trim(), subject: f.subject, date: f.date, time: f.time, venue: f.venue, syllabus: f.syllabus, notes: f.notes });
+    else onAdd({ ...f, name: f.name.trim() });
+  };
+
   return (
     <div style={S.formCard}>
       <input style={S.input} placeholder="Exam name (e.g., Midterm - Calculus II)..." value={f.name} onChange={e => set("name", e.target.value)} autoFocus />
@@ -77,7 +96,10 @@ function ExamForm({ subjects, onAdd }) {
       <input style={S.input} placeholder="Venue (e.g., Hall A, Room 201)..." value={f.venue} onChange={e => set("venue", e.target.value)} />
       <textarea style={{ ...S.input, minHeight: 60 }} placeholder="Syllabus / Topics covered..." value={f.syllabus} onChange={e => set("syllabus", e.target.value)} />
       <textarea style={{ ...S.input, minHeight: 40 }} placeholder="Additional notes..." value={f.notes} onChange={e => set("notes", e.target.value)} />
-      <button style={S.primaryBtn} onClick={() => { if (f.name.trim()) onAdd({ ...f, name: f.name.trim() }); }}>Add Exam</button>
+      <div style={S.fRow}>
+        <button style={S.primaryBtn} onClick={handleSubmit}>{editing ? "Save Changes" : "Add Exam"}</button>
+        {editing && <button style={S.ghostBtn} onClick={onCancel}>Cancel</button>}
+      </div>
     </div>
   );
 }

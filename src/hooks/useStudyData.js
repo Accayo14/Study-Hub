@@ -112,10 +112,16 @@ export function useStudyData(userId) {
 
   // ── Notes ──
   const addNote = async (n) => {
-    const { data: row } = await supabase.from('notes')
+    const { data: row, error } = await supabase.from('notes')
       .insert({ user_id: userId, title: n.title, subject: n.subject, content: n.content })
       .select('*, note_files(*)').single();
-    if (row) setData(prev => ({ ...prev, notes: [{ ...row, fileCount: 0, ts: new Date(row.created_at).getTime() }, ...prev.notes] }));
+    if (error) { console.error('addNote error:', error); alert('Failed to create note: ' + error.message); return null; }
+    if (row) {
+      const mapped = { ...row, fileCount: 0, ts: new Date(row.created_at).getTime() };
+      setData(prev => ({ ...prev, notes: [mapped, ...prev.notes] }));
+      return mapped;
+    }
+    return null;
   };
 
   const updateNote = async (id, upd) => {
@@ -142,12 +148,23 @@ export function useStudyData(userId) {
   // ── Note Files ──
   const uploadNoteFile = async (noteId, file) => {
     const filePath = `${userId}/${noteId}/${Date.now()}_${file.name}`;
-    const { error: uploadErr } = await supabase.storage.from('note-files').upload(filePath, file);
-    if (uploadErr) throw uploadErr;
+    const { error: uploadErr } = await supabase.storage.from('note-files').upload(filePath, file, {
+      cacheControl: '3600',
+      upsert: false,
+    });
+    if (uploadErr) {
+      console.error('Storage upload error:', uploadErr);
+      throw new Error(`Storage: ${uploadErr.message}`);
+    }
 
-    const { data: fileRecord } = await supabase.from('note_files')
+    const { data: fileRecord, error: dbErr } = await supabase.from('note_files')
       .insert({ note_id: noteId, file_name: file.name, file_path: filePath, file_type: file.type, file_size: file.size })
       .select().single();
+    if (dbErr) {
+      console.error('note_files insert error:', dbErr);
+      await supabase.storage.from('note-files').remove([filePath]);
+      throw new Error(`DB: ${dbErr.message}`);
+    }
 
     if (fileRecord) {
       setData(prev => ({
@@ -245,13 +262,49 @@ export function useStudyData(userId) {
     await supabase.from('tasks').delete().eq('id', id);
   };
 
+  // ── Update Operations ──
+  const updateAssignment = async (id, fields) => {
+    setData(prev => ({ ...prev, assignments: prev.assignments.map(a => a.id === id ? { ...a, ...fields } : a) }));
+    await supabase.from('assignments').update(fields).eq('id', id);
+  };
+
+  const updateExam = async (id, fields) => {
+    setData(prev => ({ ...prev, exams: prev.exams.map(e => e.id === id ? { ...e, ...fields } : e) }));
+    await supabase.from('exams').update(fields).eq('id', id);
+  };
+
+  const updateTask = async (id, fields) => {
+    setData(prev => ({ ...prev, tasks: prev.tasks.map(t => t.id === id ? { ...t, ...fields } : t) }));
+    await supabase.from('tasks').update(fields).eq('id', id);
+  };
+
+  const updateEvent = async (id, fields) => {
+    const dbFields = {};
+    if (fields.name !== undefined) dbFields.name = fields.name;
+    if (fields.subject !== undefined) dbFields.subject = fields.subject;
+    if (fields.eventType !== undefined) dbFields.event_type = fields.eventType;
+    if (fields.startHour !== undefined) dbFields.start_hour = fields.startHour;
+    if (fields.startMin !== undefined) dbFields.start_min = fields.startMin;
+    if (fields.duration !== undefined) dbFields.duration = fields.duration;
+    if (fields.recurring !== undefined) dbFields.recurring = fields.recurring;
+    if (fields.dayOfWeek !== undefined) dbFields.day_of_week = fields.dayOfWeek;
+    if (fields.date !== undefined) dbFields.date = fields.date;
+    setData(prev => ({ ...prev, scheduleEvents: prev.scheduleEvents.map(e => e.id === id ? { ...e, ...fields } : e) }));
+    await supabase.from('schedule_events').update(dbFields).eq('id', id);
+  };
+
+  const updatePomodoro = (settings) => {
+    setData(prev => ({ ...prev, pomodoro: { ...prev.pomodoro, ...settings } }));
+  };
+
   return {
     D: data, loading,
     addSubject, removeSubject,
-    addAssignment, toggleAssignment, deleteAssignment, clearDone,
+    addAssignment, toggleAssignment, deleteAssignment, clearDone, updateAssignment,
     addNote, updateNote, deleteNote, uploadNoteFile, deleteNoteFile, getFileUrl,
-    addEvent, deleteEvent,
-    addExam, toggleExam, deleteExam,
-    addTask, toggleTask, deleteTask,
+    addEvent, deleteEvent, updateEvent,
+    addExam, toggleExam, deleteExam, updateExam,
+    addTask, toggleTask, deleteTask, updateTask,
+    updatePomodoro,
   };
 }

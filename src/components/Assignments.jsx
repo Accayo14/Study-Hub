@@ -3,9 +3,10 @@ import { dueInfo, toISO, P_COLORS, PRIORITIES } from '../constants';
 import { SubjectManager, SubjectSelect, SubjectFilter } from './SubjectManager';
 import { S } from '../styles';
 
-export default function Assignments({ D, form, setForm, addSubject, removeSubject, addAssignment, toggleAssignment, deleteAssignment, clearDone }) {
+export default function Assignments({ D, form, setForm, addSubject, removeSubject, addAssignment, toggleAssignment, deleteAssignment, clearDone, updateAssignment }) {
   const [filter, setFilter] = useState("all");
   const [showMgr, setShowMgr] = useState(false);
+  const [editing, setEditing] = useState(null);
   const pending = D.assignments.filter(a => !a.done);
   const done = D.assignments.filter(a => a.done);
   const filtered = filter === "all" ? pending : pending.filter(a => a.subject === filter);
@@ -15,9 +16,16 @@ export default function Assignments({ D, form, setForm, addSubject, removeSubjec
     <div style={S.page}>
       {showMgr && <SubjectManager subjects={D.subjects} addSubject={addSubject} removeSubject={removeSubject} onClose={() => setShowMgr(false)} />}
       <div style={S.pageHead}><h1 style={S.pageTitle}>Assignments</h1>
-        <button style={S.primaryBtn} onClick={() => setForm(form === "assignment" ? null : "assignment")}>{form === "assignment" ? "✕ Cancel" : "+ Add"}</button>
+        <button style={S.primaryBtn} onClick={() => { setForm(form === "assignment" ? null : "assignment"); setEditing(null); }}>
+          {form === "assignment" && !editing ? "✕ Cancel" : "+ Add"}
+        </button>
       </div>
-      {form === "assignment" && <AssignmentForm subjects={D.subjects} onAdd={a => { addAssignment(a); setForm(null); }} />}
+      {(form === "assignment" || editing) && (
+        <AssignmentForm subjects={D.subjects} editing={editing}
+          onAdd={a => { addAssignment(a); setForm(null); }}
+          onSave={(id, fields) => { updateAssignment(id, fields); setEditing(null); }}
+          onCancel={() => { setEditing(null); setForm(null); }} />
+      )}
       <SubjectFilter subjects={D.subjects} filter={filter} setFilter={setFilter} onManage={() => setShowMgr(true)} />
       {sorted.length === 0 && <p style={S.empty}>No pending assignments. 🎉</p>}
       <div style={S.list}>
@@ -35,6 +43,7 @@ export default function Assignments({ D, form, setForm, addSubject, removeSubjec
                 </div>
                 {a.description && <div style={S.cardDesc}>{a.description}</div>}
               </div>
+              <button style={S.editBtn} onClick={() => { setEditing(a); setForm(null); }} title="Edit">✎</button>
               <button style={S.xBtn} onClick={() => deleteAssignment(a.id)}>✕</button>
             </div>
           );
@@ -59,9 +68,19 @@ export default function Assignments({ D, form, setForm, addSubject, removeSubjec
   );
 }
 
-function AssignmentForm({ subjects, onAdd }) {
-  const [f, setF] = useState({ name: "", subject: subjects[0] || "", priority: "Medium", due: toISO(new Date(Date.now() + 7 * 864e5)), description: "" });
+function AssignmentForm({ subjects, editing, onAdd, onSave, onCancel }) {
+  const initial = editing
+    ? { name: editing.name, subject: editing.subject, priority: editing.priority, due: editing.due, description: editing.description || '' }
+    : { name: "", subject: subjects[0] || "", priority: "Medium", due: toISO(new Date(Date.now() + 7 * 864e5)), description: "" };
+  const [f, setF] = useState(initial);
   const set = (k, v) => setF(p => ({ ...p, [k]: v }));
+
+  const handleSubmit = () => {
+    if (!f.name.trim()) return;
+    if (editing) onSave(editing.id, { name: f.name.trim(), subject: f.subject, priority: f.priority, due: f.due, description: f.description });
+    else onAdd({ ...f, name: f.name.trim() });
+  };
+
   return (
     <div style={S.formCard}>
       <input style={S.input} placeholder="Assignment name..." value={f.name} onChange={e => set("name", e.target.value)} autoFocus />
@@ -71,7 +90,10 @@ function AssignmentForm({ subjects, onAdd }) {
         <input style={S.input} type="date" value={f.due} onChange={e => set("due", e.target.value)} />
       </div>
       <textarea style={{ ...S.input, minHeight: 44 }} placeholder="Description (optional)..." value={f.description} onChange={e => set("description", e.target.value)} />
-      <button style={S.primaryBtn} onClick={() => { if (f.name.trim()) onAdd({ ...f, name: f.name.trim() }); }}>Add Assignment</button>
+      <div style={S.fRow}>
+        <button style={S.primaryBtn} onClick={handleSubmit}>{editing ? "Save Changes" : "Add Assignment"}</button>
+        {editing && <button style={S.ghostBtn} onClick={onCancel}>Cancel</button>}
+      </div>
     </div>
   );
 }

@@ -3,6 +3,19 @@ export const CSS = `
 *{box-sizing:border-box;margin:0;padding:0}
 ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px}
 input,select,textarea,button{font-family:'DM Sans',sans-serif}
+@media(max-width:768px){
+  [data-sh="root"]{flex-direction:column !important}
+  [data-sh="sidebar"]{width:100% !important;flex-direction:row !important;padding:6px 8px !important;overflow-x:auto !important;height:auto !important}
+  [data-sh="sidebar-top"]{flex-direction:row !important;gap:2px !important;overflow-x:auto !important;flex:0 !important}
+  [data-sh="sidebar-bottom"]{display:none !important}
+  [data-sh="main"]{padding:16px !important}
+  [data-sh="dash-grid"]{grid-template-columns:repeat(2,1fr) !important}
+  [data-sh="notes-grid"]{grid-template-columns:1fr !important}
+  [data-sh="week-grid"]{grid-template-columns:repeat(3,1fr) !important}
+  [data-sh="logo"]{margin-bottom:0 !important}
+  [data-sh="logo-text"],[data-sh="nav-label"],[data-sh="search-btn"]{display:none !important}
+  [data-sh="nav-btn"]{padding:8px !important;font-size:16px !important;justify-content:center !important}
+}
 `;
 
 export const S = {
@@ -59,6 +72,7 @@ export const S = {
 
   checkBtn: { width: 26, height: 26, borderRadius: "50%", border: "2px solid #ccc", background: "transparent", cursor: "pointer", fontSize: 13, color: "#ccc", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 },
   xBtn: { background: "none", border: "none", cursor: "pointer", color: "#ccc", fontSize: 13, padding: 3, flexShrink: 0 },
+  editBtn: { background: "none", border: "none", cursor: "pointer", color: "#aaa", fontSize: 14, padding: "2px 6px", flexShrink: 0 },
   primaryBtn: { background: "#2b2b2b", color: "#faf8f5", border: "none", borderRadius: 7, padding: "9px 18px", fontSize: 13, fontWeight: 600, cursor: "pointer" },
   ghostBtn: { background: "none", border: "1px solid #ddd", borderRadius: 7, padding: "7px 14px", fontSize: 12, color: "#888", cursor: "pointer" },
   closeBtn: { background: "none", border: "none", fontSize: 18, cursor: "pointer", color: "#999" },
@@ -95,6 +109,20 @@ export const S = {
   chipX: { background: "none", border: "none", cursor: "pointer", color: "#c1121f", fontSize: 12, fontWeight: 700 },
 
   fileRow: { display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: "1px solid #f0ece6" },
+  previewFrame: { width: "100%", height: 400, border: "1px solid #e8e0d8", borderRadius: 8 },
+  previewImg: { maxWidth: "100%", maxHeight: 300, borderRadius: 8, border: "1px solid #e8e0d8" },
+
+  searchWrap: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "flex-start", justifyContent: "center", zIndex: 1000, paddingTop: 80 },
+  searchBox: { background: "#faf8f5", borderRadius: 14, padding: 20, width: "100%", maxWidth: 520, maxHeight: "70vh", overflow: "auto" },
+  searchInput: { width: "100%", padding: "12px 16px", border: "1px solid #e0d8d0", borderRadius: 10, fontSize: 15, outline: "none", background: "#fff", fontFamily: "'DM Sans',sans-serif" },
+  searchGroup: { marginTop: 16 },
+  searchGroupTitle: { fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px", color: "#999", marginBottom: 6, paddingLeft: 4 },
+  searchItem: { display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 8, cursor: "pointer", fontSize: 13 },
+
+  settingsPanel: { background: "#fff", border: "1px solid #e8e0d8", borderRadius: 10, padding: 16, marginTop: 20, maxWidth: 320, margin: "20px auto 0" },
+  settingsRow: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid #f0ece6" },
+  settingsLabel: { fontSize: 13, fontWeight: 500 },
+  settingsInput: { width: 60, padding: "6px 8px", border: "1px solid #e0d8d0", borderRadius: 6, fontSize: 14, textAlign: "center", outline: "none" },
 
   schedNav: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18, flexWrap: "wrap", gap: 10 },
   viewTabs: { display: "flex", gap: 0, border: "1px solid #e0d8d0", borderRadius: 8, overflow: "hidden" },

@@ -1,11 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 import { S } from '../styles';
 
-export default function Focus({ D }) {
+export default function Focus({ D, updatePomodoro }) {
   const [mode, setMode] = useState("work");
   const [left, setLeft] = useState(D.pomodoro.work * 60);
   const [on, setOn] = useState(false);
   const [sess, setSess] = useState(0);
+  const [showSettings, setShowSettings] = useState(false);
+  const [workMin, setWorkMin] = useState(D.pomodoro.work);
+  const [breakMin, setBreakMin] = useState(D.pomodoro.break);
   const ref = useRef(null);
 
   useEffect(() => {
@@ -26,13 +29,29 @@ export default function Focus({ D }) {
   }, [on, mode, D.pomodoro]);
 
   const reset = () => { setOn(false); setMode("work"); setLeft(D.pomodoro.work * 60); };
+
+  const saveSettings = () => {
+    const w = Math.max(1, Math.min(120, workMin || 25));
+    const b = Math.max(1, Math.min(30, breakMin || 5));
+    updatePomodoro({ work: w, break: b });
+    setWorkMin(w);
+    setBreakMin(b);
+    if (!on) { setMode("work"); setLeft(w * 60); }
+    setShowSettings(false);
+  };
+
   const m = Math.floor(left / 60), s = left % 60;
   const total = mode === "work" ? D.pomodoro.work * 60 : D.pomodoro.break * 60;
   const pct = ((total - left) / total) * 100;
 
   return (
     <div style={S.page}>
-      <h1 style={S.pageTitle}>Focus Timer</h1>
+      <div style={S.pageHead}>
+        <h1 style={S.pageTitle}>Focus Timer</h1>
+        <button style={S.ghostBtn} onClick={() => setShowSettings(!showSettings)}>
+          {showSettings ? "✕ Close" : "⚙ Settings"}
+        </button>
+      </div>
       <div style={S.timerWrap}>
         <div style={S.timerRing}>
           <svg viewBox="0 0 200 200" style={{ width: 220, height: 220 }}>
@@ -52,6 +71,29 @@ export default function Focus({ D }) {
         </div>
         <div style={S.sessCount}>Sessions: <strong>{sess}</strong></div>
       </div>
+
+      {showSettings && (
+        <div style={S.settingsPanel}>
+          <h3 style={{ ...S.secTitle, fontSize: 16 }}>Timer Settings</h3>
+          <div style={S.settingsRow}>
+            <span style={S.settingsLabel}>Focus duration</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <input type="number" style={S.settingsInput} value={workMin}
+                onChange={e => setWorkMin(+e.target.value)} min={1} max={120} />
+              <span style={{ fontSize: 12, color: "#888" }}>min</span>
+            </div>
+          </div>
+          <div style={S.settingsRow}>
+            <span style={S.settingsLabel}>Break duration</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <input type="number" style={S.settingsInput} value={breakMin}
+                onChange={e => setBreakMin(+e.target.value)} min={1} max={30} />
+              <span style={{ fontSize: 12, color: "#888" }}>min</span>
+            </div>
+          </div>
+          <button style={{ ...S.primaryBtn, width: "100%", marginTop: 12 }} onClick={saveSettings}>Save Settings</button>
+        </div>
+      )}
     </div>
   );
 }
