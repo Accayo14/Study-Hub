@@ -65,6 +65,7 @@ create table if not exists exams (
   subject text,
   date date,
   time text,
+  duration int,
   venue text,
   syllabus text,
   notes text,

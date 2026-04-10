@@ -6,27 +6,42 @@ function useCustomCategories() {
   const [custom, setCustom] = useState(() => {
     try { return JSON.parse(localStorage.getItem("studyhub_task_cats") || "[]"); } catch { return []; }
   });
-  const all = [...TASK_CATEGORIES, ...custom];
+  const [removed, setRemoved] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("studyhub_task_cats_removed") || "[]"); } catch { return []; }
+  });
+  const all = [...TASK_CATEGORIES.filter(c => !removed.includes(c)), ...custom];
   const addCategory = (name) => {
     if (all.includes(name)) return;
+    // If re-adding a previously removed default, just un-remove it
+    if (TASK_CATEGORIES.includes(name)) {
+      const next = removed.filter(c => c !== name);
+      setRemoved(next);
+      localStorage.setItem("studyhub_task_cats_removed", JSON.stringify(next));
+      return;
+    }
     const next = [...custom, name];
     setCustom(next);
     localStorage.setItem("studyhub_task_cats", JSON.stringify(next));
   };
   const removeCategory = (name) => {
-    if (TASK_CATEGORIES.includes(name)) return;
-    const next = custom.filter(c => c !== name);
-    setCustom(next);
-    localStorage.setItem("studyhub_task_cats", JSON.stringify(next));
+    if (TASK_CATEGORIES.includes(name)) {
+      const next = [...removed, name];
+      setRemoved(next);
+      localStorage.setItem("studyhub_task_cats_removed", JSON.stringify(next));
+    } else {
+      const next = custom.filter(c => c !== name);
+      setCustom(next);
+      localStorage.setItem("studyhub_task_cats", JSON.stringify(next));
+    }
   };
-  return { categories: all, customCategories: custom, addCategory, removeCategory };
+  return { categories: all, addCategory, removeCategory };
 }
 
 export default function Tasks({ D, form, setForm, addTask, toggleTask, deleteTask, updateTask }) {
   const [filter, setFilter] = useState("all");
   const [editing, setEditing] = useState(null);
   const [showCatMgr, setShowCatMgr] = useState(false);
-  const { categories, customCategories, addCategory, removeCategory } = useCustomCategories();
+  const { categories, addCategory, removeCategory } = useCustomCategories();
   const pending = D.tasks.filter(t => !t.done);
   const done = D.tasks.filter(t => t.done);
   const filtered = filter === "all" ? pending : pending.filter(t => t.category === filter);
@@ -34,7 +49,7 @@ export default function Tasks({ D, form, setForm, addTask, toggleTask, deleteTas
 
   return (
     <div style={S.page}>
-      {showCatMgr && <CategoryManager categories={categories} customCategories={customCategories} addCategory={addCategory} removeCategory={removeCategory} onClose={() => setShowCatMgr(false)} />}
+      {showCatMgr && <CategoryManager categories={categories} addCategory={addCategory} removeCategory={removeCategory} onClose={() => setShowCatMgr(false)} />}
       <div style={S.pageHead}><h1 style={S.pageTitle}>Other Tasks</h1>
         <button style={S.primaryBtn} onClick={() => { setForm(form === "task" ? null : "task"); setEditing(null); }}>
           {form === "task" && !editing ? "✕ Cancel" : "+ Add Task"}
@@ -126,7 +141,7 @@ function TaskForm({ editing, categories, onAdd, onSave, onCancel }) {
   );
 }
 
-function CategoryManager({ categories, customCategories, addCategory, removeCategory, onClose }) {
+function CategoryManager({ categories, addCategory, removeCategory, onClose }) {
   const [val, setVal] = useState("");
   return (
     <div style={S.modal} onClick={onClose}>
@@ -139,7 +154,7 @@ function CategoryManager({ categories, customCategories, addCategory, removeCate
           {categories.map(c => (
             <div key={c} style={S.chip}>
               {c}
-              {customCategories.includes(c) && <button style={S.chipX} onClick={() => removeCategory(c)}>✕</button>}
+              <button style={S.chipX} onClick={() => removeCategory(c)}>✕</button>
             </div>
           ))}
         </div>

@@ -1,20 +1,28 @@
 export const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700&family=DM+Serif+Display&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
+html,body,#root{height:100%;width:100%;overflow:hidden;background:#faf8f5}
 ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px}
 input,select,textarea,button{font-family:'DM Sans',sans-serif}
+@media(max-width:1024px){
+  [data-sh="dash-cols"]{grid-template-columns:1fr !important}
+  [data-sh="dash-grid"]{grid-template-columns:repeat(2,1fr) !important}
+}
 @media(max-width:768px){
   [data-sh="root"]{flex-direction:column !important}
-  [data-sh="sidebar"]{width:100% !important;flex-direction:row !important;padding:6px 8px !important;overflow-x:auto !important;height:auto !important}
+  [data-sh="sidebar"]{width:100% !important;min-width:100% !important;flex-direction:row !important;padding:6px 8px !important;overflow-x:auto !important;overflow-y:hidden !important;height:auto !important;max-height:52px !important;min-height:auto !important}
   [data-sh="sidebar-top"]{flex-direction:row !important;gap:2px !important;overflow-x:auto !important;flex:0 !important}
   [data-sh="sidebar-bottom"]{display:none !important}
+  [data-sh="sidebar-clock"]{display:none !important}
   [data-sh="main"]{padding:16px !important}
   [data-sh="dash-grid"]{grid-template-columns:repeat(2,1fr) !important}
   [data-sh="notes-grid"]{grid-template-columns:1fr !important}
+  [data-sh="dash-cols"]{grid-template-columns:1fr !important}
   [data-sh="week-grid"]{grid-template-columns:repeat(3,1fr) !important}
-  [data-sh="logo"]{margin-bottom:0 !important}
+  [data-sh="logo"]{margin-bottom:0 !important;display:none !important}
   [data-sh="logo-text"],[data-sh="nav-label"],[data-sh="search-btn"]{display:none !important}
   [data-sh="nav-btn"]{padding:8px !important;font-size:16px !important;justify-content:center !important}
+  [data-sh="hamburger"]{display:none !important}
 }
 `;
 
@@ -23,20 +31,19 @@ export const S = {
   loadWrap: { display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", background: "#faf8f5", fontFamily: "'DM Sans',sans-serif" },
   loadPulse: { fontFamily: "'DM Serif Display',serif", fontSize: 28, color: "#2b2b2b", opacity: 0.5 },
 
-  sidebar: { width: 190, background: "#2b2b2b", color: "#faf8f5", display: "flex", flexDirection: "column", padding: "16px 10px", flexShrink: 0, transition: "width 0.2s" },
-  sidebarCollapsed: { width: 56 },
+  sidebar: { width: 190, minWidth: 190, background: "#2b2b2b", color: "#faf8f5", display: "flex", flexDirection: "column", padding: "16px 10px", flexShrink: 0, overflow: "hidden", transition: "width 0.2s, min-width 0.2s" },
+  sidebarCollapsed: { width: 56, minWidth: 56, padding: "16px 6px" },
   sidebarTop: { flex: 1 },
   sidebarBottom: { borderTop: "1px solid #3d3d3d", paddingTop: 12 },
   logo: { display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", marginBottom: 20, cursor: "pointer" },
-  logoEmoji: { fontSize: 20 },
-  logoText: { fontFamily: "'DM Serif Display',serif", fontSize: 18, letterSpacing: "-0.5px" },
+  logoText: { fontFamily: "'DM Serif Display',serif", fontSize: 18, letterSpacing: "-0.5px", padding: "0 10px" },
   navBtn: { display: "flex", alignItems: "center", gap: 10, padding: "9px 10px", border: "none", background: "transparent", color: "#a8a8a8", borderRadius: 7, cursor: "pointer", fontSize: 13, width: "100%", textAlign: "left", transition: "all 0.12s", fontWeight: 500 },
   navActive: { background: "#3d3d3d", color: "#faf8f5" },
   navCollapsed: { justifyContent: "center", padding: "10px" },
   navIcon: { fontSize: 15, width: 18, textAlign: "center", flexShrink: 0 },
   miniStat: { fontSize: 11, color: "#888", marginBottom: 4 },
 
-  main: { flex: 1, overflow: "auto", padding: "28px 36px" },
+  main: { flex: 1, overflow: "auto", padding: "28px 36px", minWidth: 0 },
   page: { maxWidth: 820, margin: "0 auto" },
   pageHead: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 },
   pageTitle: { fontFamily: "'DM Serif Display',serif", fontSize: 26, fontWeight: 400 },

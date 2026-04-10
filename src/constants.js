@@ -11,6 +11,7 @@ export const TABS = [
   { id: "schedule", label: "Schedule", icon: "▦" },
   { id: "exams", label: "Exams", icon: "✦" },
   { id: "assignments", label: "Assignments", icon: "✓" },
+  { id: "studyplan", label: "Study Plan", icon: "📖" },
   { id: "tasks", label: "Other Tasks", icon: "◈" },
   { id: "notes", label: "Notes", icon: "✎" },
   { id: "focus", label: "Focus", icon: "⏱" },
@@ -26,17 +27,24 @@ export const fmtH = (h, m = 0, use24h = false) => {
   return m ? `${hh}:${String(m).padStart(2, "0")} ${ap}` : `${hh} ${ap}`;
 };
 
-export const toISO = (d) => new Date(d).toISOString().slice(0, 10);
+export const toISO = (d) => {
+  const dt = new Date(d);
+  return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+};
 export const today = () => toISO(new Date());
 export const isSameDay = (a, b) => toISO(a) === toISO(b);
 
 export function dueInfo(d) {
-  const date = new Date(d + "T23:59:59");
+  // Compare calendar dates only (no time-of-day influence)
   const now = new Date();
-  const diff = Math.floor((date - now) / 864e5);
+  const todayMid = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  // Parse the due date as local midnight
+  const [y, m, day] = d.split("-").map(Number);
+  const dueMid = new Date(y, m - 1, day);
+  const diff = Math.round((dueMid - todayMid) / 864e5);
   if (diff < 0) return { text: `${Math.abs(diff)}d overdue`, cls: "overdue", urgent: true };
   if (diff === 0) return { text: "Today", cls: "today", urgent: true };
   if (diff === 1) return { text: "Tomorrow", cls: "tomorrow", urgent: true };
   if (diff <= 7) return { text: `${diff} days left`, cls: "soon", urgent: false };
-  return { text: new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric" }), cls: "later", urgent: false };
+  return { text: new Date(y, m - 1, day).toLocaleDateString("en-US", { month: "short", day: "numeric" }), cls: "later", urgent: false };
 }

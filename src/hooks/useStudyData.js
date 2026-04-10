@@ -225,7 +225,7 @@ export function useStudyData(userId) {
   // ── Exams ──
   const addExam = async (e) => {
     const { data: row } = await supabase.from('exams')
-      .insert({ user_id: userId, name: e.name, subject: e.subject, date: e.date, time: e.time, venue: e.venue, syllabus: e.syllabus, notes: e.notes })
+      .insert({ user_id: userId, name: e.name, subject: e.subject, date: e.date, time: e.time, duration: e.duration || null, venue: e.venue, syllabus: e.syllabus, notes: e.notes })
       .select().single();
     if (row) setData(prev => ({ ...prev, exams: [...prev.exams, row] }));
   };

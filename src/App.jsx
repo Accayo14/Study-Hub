@@ -9,6 +9,7 @@ import Notes from './components/Notes';
 import Schedule from './components/Schedule';
 import Exams from './components/Exams';
 import Tasks from './components/Tasks';
+import StudyPlan from './components/StudyPlan';
 import Search from './components/Search';
 import { TABS } from './constants';
 import { S, CSS } from './styles';
@@ -31,7 +32,7 @@ function SidebarClock({ use24h }) {
     : now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", second: "2-digit", hour12: true });
   const dateStr = now.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
   return (
-    <div style={{ textAlign: "center", padding: "6px 0 12px", borderBottom: "1px solid #3d3d3d", marginBottom: 12 }}>
+    <div style={{ textAlign: "center", padding: "6px 0 12px", borderBottom: "1px solid #3d3d3d", marginBottom: 12 }} data-sh="sidebar-clock">
       <div style={{ fontSize: 18, fontWeight: 600, color: "#faf8f5", fontFamily: "'DM Serif Display',serif", letterSpacing: "0.5px" }}>{timeStr}</div>
       <div style={{ fontSize: 11, color: "#a8a8a8", marginTop: 2 }}>{dateStr}</div>
     </div>
@@ -43,13 +44,22 @@ function Main() {
   const { D, loading, ...ops } = useStudyData(user.id);
   const [tab, setTab] = useState("dashboard");
   const [form, setForm] = useState(null);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth > 900);
   const [showSearch, setShowSearch] = useState(false);
   const [use24h, setUse24h] = useState(() => localStorage.getItem("studyhub_24h") === "true");
 
   const toggle24h = () => {
     setUse24h(v => { const next = !v; localStorage.setItem("studyhub_24h", String(next)); return next; });
   };
+
+  // Auto-collapse sidebar when window gets narrow
+  useEffect(() => {
+    const onResize = () => {
+      if (window.innerWidth <= 900) setSidebarOpen(false);
+    };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   useEffect(() => {
     const handler = (e) => {
@@ -72,9 +82,13 @@ function Main() {
       {showSearch && <Search D={D} onClose={() => setShowSearch(false)} onNavigate={setTab} />}
       <nav style={{ ...S.sidebar, ...(sidebarOpen ? {} : S.sidebarCollapsed) }} data-sh="sidebar">
         <div style={S.sidebarTop} data-sh="sidebar-top">
-          <div style={S.logo} onClick={() => setSidebarOpen(!sidebarOpen)} data-sh="logo">
-            <span style={S.logoEmoji}>📚</span>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: sidebarOpen ? "space-between" : "center", marginBottom: sidebarOpen ? 8 : 12, padding: sidebarOpen ? "0" : "0" }} data-sh="logo">
             {sidebarOpen && <span style={S.logoText} data-sh="logo-text">StudyHub</span>}
+            <button onClick={() => setSidebarOpen(!sidebarOpen)}
+              style={{ background: "none", border: "none", color: "#a8a8a8", fontSize: 16, cursor: "pointer", padding: "9px 10px", borderRadius: 7, lineHeight: 1, width: sidebarOpen ? "auto" : "100%", textAlign: "center" }}
+              data-sh="hamburger" title={sidebarOpen ? "Collapse" : "Expand"}>
+              ☰
+            </button>
           </div>
           {sidebarOpen && <SidebarClock use24h={use24h} />}
           {sidebarOpen && (
@@ -111,6 +125,7 @@ function Main() {
       <main style={S.main} data-sh="main">
         {tab === "dashboard" && <Dashboard {...p} />}
         {tab === "assignments" && <Assignments {...p} />}
+        {tab === "studyplan" && <StudyPlan {...p} />}
         {tab === "focus" && <Focus {...p} />}
         {tab === "notes" && <Notes {...p} />}
         {tab === "schedule" && <Schedule {...p} />}

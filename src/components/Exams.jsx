@@ -1,13 +1,42 @@
 import { useState } from 'react';
-import { dueInfo, toISO } from '../constants';
+import { dueInfo, toISO, fmtH } from '../constants';
 import { SubjectSelect } from './SubjectManager';
 import { S } from '../styles';
 
-export default function Exams({ D, form, setForm, addExam, toggleExam, deleteExam, updateExam }) {
+export default function Exams({ D, form, setForm, addExam, toggleExam, deleteExam, updateExam, addEvent, use24h }) {
   const upcoming = D.exams.filter(e => !e.done).sort((a, b) => new Date(a.date) - new Date(b.date));
   const past = D.exams.filter(e => e.done);
   const [expanded, setExpanded] = useState(null);
   const [editing, setEditing] = useState(null);
+
+  const handleAdd = async (e) => {
+    await addExam(e);
+    // Auto-add to schedule if it has a time
+    if (e.time && e.date) {
+      const [h, m] = e.time.split(":").map(Number);
+      await addEvent({
+        name: e.name,
+        subject: e.subject,
+        eventType: "exam",
+        startHour: h,
+        startMin: m,
+        duration: e.duration || 120,
+        recurring: false,
+        dayOfWeek: new Date(e.date + "T00:00:00").getDay(),
+        date: e.date,
+      });
+    }
+    setForm(null);
+  };
+
+  const formatEndTime = (time, duration) => {
+    if (!time || !duration) return null;
+    const [h, m] = time.split(":").map(Number);
+    const totalMin = h * 60 + m + duration;
+    const endH = Math.floor(totalMin / 60) % 24;
+    const endM = totalMin % 60;
+    return fmtH(endH, endM, use24h);
+  };
 
   return (
     <div style={S.page}>
@@ -18,7 +47,7 @@ export default function Exams({ D, form, setForm, addExam, toggleExam, deleteExa
       </div>
       {(form === "exam" || editing) && (
         <ExamForm subjects={D.subjects} editing={editing}
-          onAdd={e => { addExam(e); setForm(null); }}
+          onAdd={handleAdd}
           onSave={(id, fields) => { updateExam(id, fields); setEditing(null); }}
           onCancel={() => { setEditing(null); setForm(null); }} />
       )}
@@ -27,6 +56,7 @@ export default function Exams({ D, form, setForm, addExam, toggleExam, deleteExa
         {upcoming.map(e => {
           const di = dueInfo(e.date);
           const open = expanded === e.id;
+          const endTime = formatEndTime(e.time, e.duration);
           return (
             <div key={e.id} style={{ ...S.card, flexDirection: "column", cursor: "pointer" }} onClick={() => setExpanded(open ? null : e.id)}>
               <div style={{ display: "flex", alignItems: "center", gap: 12, width: "100%" }}>
@@ -36,7 +66,8 @@ export default function Exams({ D, form, setForm, addExam, toggleExam, deleteExa
                   <div style={S.cardMeta}>
                     <span style={S.tagSmall}>{e.subject}</span>
                     <span style={{ ...S.dueTxt, color: di.cls === "overdue" ? "#c1121f" : di.cls === "today" ? "#e07a5f" : "#888" }}>{di.text}</span>
-                    {e.time && <span style={{ fontSize: 11, color: "#888" }}>at {e.time}</span>}
+                    {e.time && <span style={{ fontSize: 11, color: "#888" }}>at {e.time}{endTime ? ` - ${endTime}` : ""}</span>}
+                    {e.duration && <span style={{ fontSize: 10, color: "#aaa" }}>({e.duration} min)</span>}
                   </div>
                 </div>
                 <button style={S.editBtn} onClick={ev => { ev.stopPropagation(); setEditing(e); setForm(null); }} title="Edit">✎</button>
@@ -45,8 +76,9 @@ export default function Exams({ D, form, setForm, addExam, toggleExam, deleteExa
               </div>
               {open && (
                 <div style={S.examDetails}>
-                  <div style={S.examRow}><strong>Date:</strong> {new Date(e.date).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}</div>
-                  {e.time && <div style={S.examRow}><strong>Time:</strong> {e.time}</div>}
+                  <div style={S.examRow}><strong>Date:</strong> {new Date(e.date + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}</div>
+                  {e.time && <div style={S.examRow}><strong>Time:</strong> {e.time}{endTime ? ` - ${endTime}` : ""}</div>}
+                  {e.duration && <div style={S.examRow}><strong>Duration:</strong> {e.duration} minutes</div>}
                   {e.venue && <div style={S.examRow}><strong>Venue:</strong> {e.venue}</div>}
                   {e.syllabus && <div style={{ ...S.examRow, whiteSpace: "pre-wrap" }}><strong>Syllabus:</strong> {e.syllabus}</div>}
                   {e.notes && <div style={{ ...S.examRow, whiteSpace: "pre-wrap" }}><strong>Notes:</strong> {e.notes}</div>}
@@ -74,15 +106,27 @@ export default function Exams({ D, form, setForm, addExam, toggleExam, deleteExa
 
 function ExamForm({ subjects, editing, onAdd, onSave, onCancel }) {
   const initial = editing
-    ? { name: editing.name, subject: editing.subject, date: editing.date, time: editing.time || '', venue: editing.venue || '', syllabus: editing.syllabus || '', notes: editing.notes || '' }
-    : { name: "", subject: subjects[0] || "", date: toISO(new Date(Date.now() + 14 * 864e5)), time: "09:00", venue: "", syllabus: "", notes: "" };
+    ? { name: editing.name, subject: editing.subject, date: editing.date, time: editing.time || '', duration: editing.duration || '', durationMode: editing.duration ? 'duration' : 'endtime', endTime: '', venue: editing.venue || '', syllabus: editing.syllabus || '', notes: editing.notes || '' }
+    : { name: "", subject: subjects[0] || "", date: toISO(new Date(Date.now() + 14 * 864e5)), time: "09:00", duration: 120, durationMode: "duration", endTime: "", venue: "", syllabus: "", notes: "" };
   const [f, setF] = useState(initial);
   const set = (k, v) => setF(p => ({ ...p, [k]: v }));
 
+  // Calculate duration from end time
+  const calcDuration = () => {
+    if (f.durationMode === "duration") return f.duration || null;
+    if (!f.time || !f.endTime) return null;
+    const [sh, sm] = f.time.split(":").map(Number);
+    const [eh, em] = f.endTime.split(":").map(Number);
+    const diff = (eh * 60 + em) - (sh * 60 + sm);
+    return diff > 0 ? diff : null;
+  };
+
   const handleSubmit = () => {
     if (!f.name.trim()) return;
-    if (editing) onSave(editing.id, { name: f.name.trim(), subject: f.subject, date: f.date, time: f.time, venue: f.venue, syllabus: f.syllabus, notes: f.notes });
-    else onAdd({ ...f, name: f.name.trim() });
+    const duration = calcDuration();
+    const fields = { name: f.name.trim(), subject: f.subject, date: f.date, time: f.time, duration: duration || null, venue: f.venue, syllabus: f.syllabus, notes: f.notes };
+    if (editing) onSave(editing.id, fields);
+    else onAdd(fields);
   };
 
   return (
@@ -91,7 +135,38 @@ function ExamForm({ subjects, editing, onAdd, onSave, onCancel }) {
       <div style={S.fRow}>
         <SubjectSelect subjects={subjects} value={f.subject} onChange={v => set("subject", v)} />
         <input style={S.input} type="date" value={f.date} onChange={e => set("date", e.target.value)} />
-        <input style={S.input} type="time" value={f.time} onChange={e => set("time", e.target.value)} />
+      </div>
+      <div style={S.fRow}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1 }}>
+          <label style={{ fontSize: 11, color: "#888", fontWeight: 600 }}>Start Time</label>
+          <input style={S.input} type="time" value={f.time} onChange={e => set("time", e.target.value)} />
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <label style={{ fontSize: 11, color: "#888", fontWeight: 600 }}>End by</label>
+          <div style={{ display: "flex", gap: 0, border: "1px solid #e0d8d0", borderRadius: 7, overflow: "hidden" }}>
+            <button onClick={() => set("durationMode", "duration")}
+              style={{ padding: "6px 10px", border: "none", fontSize: 11, fontWeight: 600, cursor: "pointer", background: f.durationMode === "duration" ? "#2b2b2b" : "#fff", color: f.durationMode === "duration" ? "#faf8f5" : "#888" }}>
+              Duration
+            </button>
+            <button onClick={() => set("durationMode", "endtime")}
+              style={{ padding: "6px 10px", border: "none", fontSize: 11, fontWeight: 600, cursor: "pointer", background: f.durationMode === "endtime" ? "#2b2b2b" : "#fff", color: f.durationMode === "endtime" ? "#faf8f5" : "#888" }}>
+              End Time
+            </button>
+          </div>
+        </div>
+        {f.durationMode === "duration" ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <label style={{ fontSize: 11, color: "#888", fontWeight: 600 }}>Minutes</label>
+            <select style={S.select} value={f.duration} onChange={e => set("duration", +e.target.value)}>
+              {[30, 45, 60, 90, 120, 150, 180, 210, 240].map(d => <option key={d} value={d}>{d} min</option>)}
+            </select>
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1 }}>
+            <label style={{ fontSize: 11, color: "#888", fontWeight: 600 }}>End Time</label>
+            <input style={S.input} type="time" value={f.endTime} onChange={e => set("endTime", e.target.value)} />
+          </div>
+        )}
       </div>
       <input style={S.input} placeholder="Venue (e.g., Hall A, Room 201)..." value={f.venue} onChange={e => set("venue", e.target.value)} />
       <textarea style={{ ...S.input, minHeight: 60 }} placeholder="Syllabus / Topics covered..." value={f.syllabus} onChange={e => set("syllabus", e.target.value)} />
