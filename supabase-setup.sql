@@ -17,7 +17,9 @@ create table if not exists assignments (
   subject text,
   priority text default 'Medium',
   due date,
+  time text,
   description text,
+  type text default 'assignment',
   done boolean default false,
   created_at timestamptz default now()
 );

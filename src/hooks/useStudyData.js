@@ -86,7 +86,7 @@ export function useStudyData(userId) {
   // ── Assignments ──
   const addAssignment = async (a) => {
     const { data: row } = await supabase.from('assignments')
-      .insert({ user_id: userId, name: a.name, subject: a.subject, priority: a.priority, due: a.due, description: a.description })
+      .insert({ user_id: userId, name: a.name, subject: a.subject, priority: a.priority, due: a.due, time: a.time || null, description: a.description, type: a.type || 'assignment' })
       .select().single();
     if (row) setData(prev => ({ ...prev, assignments: [...prev.assignments, row] }));
   };

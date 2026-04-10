@@ -20,6 +20,24 @@ function AppRouter() {
   return <Main />;
 }
 
+function SidebarClock({ use24h }) {
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const timeStr = use24h
+    ? now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" })
+    : now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", second: "2-digit", hour12: true });
+  const dateStr = now.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+  return (
+    <div style={{ textAlign: "center", padding: "6px 0 12px", borderBottom: "1px solid #3d3d3d", marginBottom: 12 }}>
+      <div style={{ fontSize: 18, fontWeight: 600, color: "#faf8f5", fontFamily: "'DM Serif Display',serif", letterSpacing: "0.5px" }}>{timeStr}</div>
+      <div style={{ fontSize: 11, color: "#a8a8a8", marginTop: 2 }}>{dateStr}</div>
+    </div>
+  );
+}
+
 function Main() {
   const { user, signOut } = useAuth();
   const { D, loading, ...ops } = useStudyData(user.id);
@@ -27,6 +45,11 @@ function Main() {
   const [form, setForm] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [showSearch, setShowSearch] = useState(false);
+  const [use24h, setUse24h] = useState(() => localStorage.getItem("studyhub_24h") === "true");
+
+  const toggle24h = () => {
+    setUse24h(v => { const next = !v; localStorage.setItem("studyhub_24h", String(next)); return next; });
+  };
 
   useEffect(() => {
     const handler = (e) => {
@@ -42,7 +65,7 @@ function Main() {
 
   if (loading || !D) return <div style={S.loadWrap}><div style={S.loadPulse}>StudyHub</div></div>;
 
-  const p = { D, tab, setTab, form, setForm, ...ops };
+  const p = { D, tab, setTab, form, setForm, use24h, ...ops };
 
   return (
     <div style={S.root} data-sh="root">
@@ -53,6 +76,7 @@ function Main() {
             <span style={S.logoEmoji}>📚</span>
             {sidebarOpen && <span style={S.logoText} data-sh="logo-text">StudyHub</span>}
           </div>
+          {sidebarOpen && <SidebarClock use24h={use24h} />}
           {sidebarOpen && (
             <button onClick={() => setShowSearch(true)}
               style={{ ...S.navBtn, color: "#888", marginBottom: 8, border: "1px solid #3d3d3d", borderRadius: 7, fontSize: 12, justifyContent: "space-between" }}
@@ -77,7 +101,10 @@ function Main() {
             </div>
             <div style={S.miniStat}>{D.assignments.filter(a => !a.done).length} pending</div>
             <div style={S.miniStat}>{D.exams.filter(e => !e.done).length} exams left</div>
-            <button style={{ ...S.ghostBtn, marginTop: 10, width: "100%", fontSize: 11, color: "#a8a8a8", borderColor: "#3d3d3d" }} onClick={signOut}>Sign Out</button>
+            <button style={{ ...S.ghostBtn, marginTop: 8, width: "100%", fontSize: 10, color: "#a8a8a8", borderColor: "#3d3d3d", padding: "5px 10px" }} onClick={toggle24h}>
+              {use24h ? "Switch to 12hr" : "Switch to 24hr"}
+            </button>
+            <button style={{ ...S.ghostBtn, marginTop: 6, width: "100%", fontSize: 11, color: "#a8a8a8", borderColor: "#3d3d3d" }} onClick={signOut}>Sign Out</button>
           </div>
         )}
       </nav>

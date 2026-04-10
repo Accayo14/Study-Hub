@@ -1,9 +1,9 @@
 import { dueInfo, isSameDay, fmtH, today, P_COLORS } from '../constants';
 import { S } from '../styles';
 
-export default function Dashboard({ D, setTab }) {
+export default function Dashboard({ D, setTab, use24h }) {
   const now = new Date();
-  const greeting = now.getHours() < 12 ? "morning" : now.getHours() < 17 ? "afternoon" : "evening";
+  const greeting = now.getHours() < 5 ? "night" : now.getHours() < 12 ? "morning" : now.getHours() < 16 ? "afternoon" : now.getHours() < 20 ? "evening" : "night";
   const todayStr = now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
   const pending = D.assignments.filter(a => !a.done);
   const dueSoon = pending.filter(a => dueInfo(a.due).urgent);
@@ -54,7 +54,7 @@ export default function Dashboard({ D, setTab }) {
         {next4h.length === 0 && pendingTasks.length === 0 && <p style={S.empty}>Nothing scheduled. Free time!</p>}
         {next4h.map(ev => (
           <div key={ev.id} style={S.miniEventCard}>
-            <span style={S.miniEvTime}>{fmtH(ev.startHour, ev.startMin)}</span>
+            <span style={S.miniEvTime}>{fmtH(ev.startHour, ev.startMin, use24h)}</span>
             <span style={S.miniEvName}>{ev.name}</span>
             <span style={S.tagSmall}>{ev.subject || ev.eventType}</span>
           </div>
@@ -70,6 +70,29 @@ export default function Dashboard({ D, setTab }) {
               </div>
             ))}
           </div>
+        )}
+      </div>
+
+      <div style={S.dashSection}>
+        <h2 style={S.secTitle}>✦ Tasks</h2>
+        {D.tasks.filter(t => !t.done).length === 0 && <p style={S.empty}>No open tasks.</p>}
+        {D.tasks.filter(t => !t.done).slice(0, 6).map(t => {
+          const di = t.due ? dueInfo(t.due) : null;
+          return (
+            <div key={t.id} style={S.miniAssign}>
+              <div style={{ flex: 1 }}>
+                <div style={S.miniAssignName}>{t.name}</div>
+                <div style={S.miniAssignMeta}>
+                  <span style={{ ...S.badge, background: P_COLORS[t.priority] }}>{t.priority}</span>
+                  <span style={S.tagSmall}>{t.category}</span>
+                </div>
+              </div>
+              {di && <span style={{ ...S.dueTxt, color: di.cls === "overdue" ? "#c1121f" : "#888" }}>{di.text}</span>}
+            </div>
+          );
+        })}
+        {D.tasks.filter(t => !t.done).length > 6 && (
+          <button style={{ ...S.ghostBtn, marginTop: 8, fontSize: 11 }} onClick={() => setTab("tasks")}>View all tasks →</button>
         )}
       </div>
 

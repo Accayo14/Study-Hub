@@ -3,7 +3,7 @@ import { HOURS, DAYS, DAYS_FULL, fmtH, toISO, today, isSameDay } from '../consta
 import { SubjectSelect } from './SubjectManager';
 import { S } from '../styles';
 
-export default function Schedule({ D, form, setForm, addEvent, deleteEvent, updateEvent }) {
+export default function Schedule({ D, form, setForm, addEvent, deleteEvent, updateEvent, use24h }) {
   const [view, setView] = useState("daily");
   const [refDate, setRefDate] = useState(new Date());
   const [editing, setEditing] = useState(null);
@@ -61,21 +61,21 @@ export default function Schedule({ D, form, setForm, addEvent, deleteEvent, upda
         </div>
       </div>
 
-      {view === "daily" && <DailyView events={getEventsForDay(refDate)} deleteEvent={deleteEvent} onEdit={handleEdit} />}
-      {view === "weekly" && <WeeklyView refDate={refDate} getEventsForDay={getEventsForDay} deleteEvent={deleteEvent} onEdit={handleEdit} />}
+      {view === "daily" && <DailyView events={getEventsForDay(refDate)} deleteEvent={deleteEvent} onEdit={handleEdit} use24h={use24h} />}
+      {view === "weekly" && <WeeklyView refDate={refDate} getEventsForDay={getEventsForDay} deleteEvent={deleteEvent} onEdit={handleEdit} use24h={use24h} />}
       {view === "monthly" && <MonthlyView refDate={refDate} getEventsForDay={getEventsForDay} />}
     </div>
   );
 }
 
-function DailyView({ events, deleteEvent, onEdit }) {
+function DailyView({ events, deleteEvent, onEdit, use24h }) {
   return (
     <div style={S.dailyGrid}>
       {HOURS.map(h => {
         const evs = events.filter(e => e.startHour === h);
         return (
           <div key={h} style={S.hourRow}>
-            <div style={S.hourLbl}>{fmtH(h)}</div>
+            <div style={S.hourLbl}>{fmtH(h, 0, use24h)}</div>
             <div style={S.hourSlot}>
               {evs.length === 0 && <div style={{ height: 36 }} />}
               {evs.map(e => (
@@ -100,7 +100,7 @@ function DailyView({ events, deleteEvent, onEdit }) {
   );
 }
 
-function WeeklyView({ refDate, getEventsForDay, onEdit }) {
+function WeeklyView({ refDate, getEventsForDay, onEdit, use24h }) {
   const sun = new Date(refDate);
   sun.setDate(sun.getDate() - sun.getDay());
   const days = Array.from({ length: 7 }, (_, i) => { const d = new Date(sun); d.setDate(d.getDate() + i); return d; });
@@ -120,7 +120,7 @@ function WeeklyView({ refDate, getEventsForDay, onEdit }) {
               {evs.map(e => (
                 <div key={e.id} style={{ ...S.weekEvent, borderLeft: `3px solid ${e.eventType === "class" ? "#457b9d" : e.eventType === "exam" || e.eventType === "quiz" ? "#c1121f" : "#d4a35a"}`, cursor: "pointer" }}
                   onClick={() => onEdit(e)}>
-                  <div style={{ fontSize: 10, color: "#999" }}>{fmtH(e.startHour, e.startMin)}</div>
+                  <div style={{ fontSize: 10, color: "#999" }}>{fmtH(e.startHour, e.startMin, use24h)}</div>
                   <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.2 }}>{e.name}</div>
                 </div>
               ))}
