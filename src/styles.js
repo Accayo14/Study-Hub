@@ -147,7 +147,7 @@ export const S = {
   blockName: { fontWeight: 600, fontSize: 13 },
   blockMeta: { display: "flex", gap: 5, alignItems: "center", marginTop: 2 },
 
-  weekGrid: { display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 0, border: "1px solid #e0d8d0", borderRadius: 10, overflow: "hidden" },
+  weekGrid: { display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 0, border: "1px solid #e0d8d0", borderRadius: 10 },
   weekCol: { borderRight: "1px solid #f0ece6", minHeight: 180 },
   weekDayHead: { textAlign: "center", padding: "8px 4px", borderBottom: "1px solid #f0ece6", color: "#888" },
   weekEvents: { padding: 4 },
