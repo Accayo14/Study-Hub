@@ -3,11 +3,17 @@ import { dueInfo, toISO, fmtH } from '../constants';
 import { SubjectSelect } from './SubjectManager';
 import { S } from '../styles';
 
-export default function Exams({ D, form, setForm, addExam, toggleExam, deleteExam, updateExam, addEvent, use24h }) {
+export default function Exams({ D, form, setForm, addExam, toggleExam, deleteExam, updateExam, addEvent, deleteEvent, use24h }) {
   const upcoming = D.exams.filter(e => !e.done).sort((a, b) => new Date(a.date) - new Date(b.date));
   const past = D.exams.filter(e => e.done);
   const [expanded, setExpanded] = useState(null);
   const [editing, setEditing] = useState(null);
+
+  const fmtTime = (time) => {
+    if (!time) return null;
+    const [h, m] = time.split(":").map(Number);
+    return fmtH(h, m, use24h);
+  };
 
   const handleAdd = async (e) => {
     await addExam(e);
@@ -29,6 +35,43 @@ export default function Exams({ D, form, setForm, addExam, toggleExam, deleteExa
     setForm(null);
   };
 
+  const handleSave = async (id, fields) => {
+    const oldExam = D.exams.find(e => e.id === id);
+    await updateExam(id, fields);
+    // Find and remove the old schedule event for this exam
+    if (oldExam) {
+      const oldEvents = D.scheduleEvents.filter(ev =>
+        ev.eventType === "exam" && ev.name === oldExam.name && ev.subject === oldExam.subject
+      );
+      for (const ev of oldEvents) await deleteEvent(ev.id);
+    }
+    // Add updated schedule event if exam has a time
+    if (fields.time && fields.date) {
+      const [h, m] = fields.time.split(":").map(Number);
+      await addEvent({
+        name: fields.name,
+        subject: fields.subject,
+        eventType: "exam",
+        startHour: h,
+        startMin: m,
+        duration: fields.duration || 120,
+        recurring: false,
+        dayOfWeek: new Date(fields.date + "T00:00:00").getDay(),
+        date: fields.date,
+      });
+    }
+    setEditing(null);
+  };
+
+  const handleDelete = async (exam) => {
+    // Remove schedule event for this exam
+    const events = D.scheduleEvents.filter(ev =>
+      ev.eventType === "exam" && ev.name === exam.name && ev.subject === exam.subject
+    );
+    for (const ev of events) await deleteEvent(ev.id);
+    await deleteExam(exam.id);
+  };
+
   const formatEndTime = (time, duration) => {
     if (!time || !duration) return null;
     const [h, m] = time.split(":").map(Number);
@@ -48,7 +91,7 @@ export default function Exams({ D, form, setForm, addExam, toggleExam, deleteExa
       {(form === "exam" || editing) && (
         <ExamForm subjects={D.subjects} editing={editing}
           onAdd={handleAdd}
-          onSave={(id, fields) => { updateExam(id, fields); setEditing(null); }}
+          onSave={handleSave}
           onCancel={() => { setEditing(null); setForm(null); }} />
       )}
       {upcoming.length === 0 && !editing && <p style={S.empty}>No upcoming exams. Enjoy the break!</p>}
@@ -66,18 +109,18 @@ export default function Exams({ D, form, setForm, addExam, toggleExam, deleteExa
                   <div style={S.cardMeta}>
                     <span style={S.tagSmall}>{e.subject}</span>
                     <span style={{ ...S.dueTxt, color: di.cls === "overdue" ? "#c1121f" : di.cls === "today" ? "#e07a5f" : "#888" }}>{di.text}</span>
-                    {e.time && <span style={{ fontSize: 11, color: "#888" }}>at {e.time}{endTime ? ` - ${endTime}` : ""}</span>}
+                    {e.time && <span style={{ fontSize: 11, color: "#888" }}>at {fmtTime(e.time)}{endTime ? ` \u2013 ${endTime}` : ""}</span>}
                     {e.duration && <span style={{ fontSize: 10, color: "#aaa" }}>({e.duration} min)</span>}
                   </div>
                 </div>
                 <button style={S.editBtn} onClick={ev => { ev.stopPropagation(); setEditing(e); setForm(null); }} title="Edit">✎</button>
                 <span style={{ fontSize: 12, color: "#aaa" }}>{open ? "▲" : "▼"}</span>
-                <button style={S.xBtn} onClick={ev => { ev.stopPropagation(); deleteExam(e.id); }}>✕</button>
+                <button style={S.xBtn} onClick={ev => { ev.stopPropagation(); handleDelete(e); }}>✕</button>
               </div>
               {open && (
                 <div style={S.examDetails}>
                   <div style={S.examRow}><strong>Date:</strong> {new Date(e.date + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}</div>
-                  {e.time && <div style={S.examRow}><strong>Time:</strong> {e.time}{endTime ? ` - ${endTime}` : ""}</div>}
+                  {e.time && <div style={S.examRow}><strong>Time:</strong> {fmtTime(e.time)}{endTime ? ` \u2013 ${endTime}` : ""}</div>}
                   {e.duration && <div style={S.examRow}><strong>Duration:</strong> {e.duration} minutes</div>}
                   {e.venue && <div style={S.examRow}><strong>Venue:</strong> {e.venue}</div>}
                   {e.syllabus && <div style={{ ...S.examRow, whiteSpace: "pre-wrap" }}><strong>Syllabus:</strong> {e.syllabus}</div>}
@@ -95,7 +138,7 @@ export default function Exams({ D, form, setForm, addExam, toggleExam, deleteExa
             <div key={e.id} style={{ ...S.card, opacity: 0.45 }}>
               <button style={{ ...S.checkBtn, color: "#6b9080" }} onClick={() => toggleExam(e.id)}>●</button>
               <div style={{ flex: 1, textDecoration: "line-through" }}><div style={S.cardName}>{e.name}</div></div>
-              <button style={S.xBtn} onClick={() => deleteExam(e.id)}>✕</button>
+              <button style={S.xBtn} onClick={() => handleDelete(e)}>✕</button>
             </div>
           ))}
         </div>
