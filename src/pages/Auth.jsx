@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { allowSignUp } from '../lib/supabase';
 import { S } from '../styles';
 
 export default function Auth() {
@@ -18,7 +19,7 @@ export default function Auth() {
     setSuccess('');
     setLoading(true);
 
-    if (mode === 'login') {
+    if (mode === 'login' || !allowSignUp) {
       const { error } = await signIn(email, password);
       if (error) setError(error.message);
     } else {
@@ -68,12 +69,16 @@ export default function Auth() {
           </button>
         </form>
 
-        <p style={a.toggle}>
-          {mode === 'login' ? "Don't have an account? " : "Already have an account? "}
-          <button style={a.link} onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError(''); setSuccess(''); }}>
-            {mode === 'login' ? 'Sign up' : 'Sign in'}
-          </button>
-        </p>
+        {allowSignUp ? (
+          <p style={a.toggle}>
+            {mode === 'login' ? "Don't have an account? " : "Already have an account? "}
+            <button style={a.link} onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError(''); setSuccess(''); }}>
+              {mode === 'login' ? 'Sign up' : 'Sign in'}
+            </button>
+          </p>
+        ) : (
+          <p style={a.toggle}>Private instance &mdash; sign-in only.</p>
+        )}
       </div>
     </div>
   );
