@@ -183,10 +183,10 @@ function ScheduleForm({ subjects, editing, onAdd, onSave, onCancel }) {
     <div style={S.formCard}>
       <input style={S.input} placeholder="Event name (e.g., Linear Algebra Lecture)..." value={f.name} onChange={e => set("name", e.target.value)} autoFocus />
       <div style={S.fRow}>
-        <SubjectSelect subjects={subjects} value={f.subject} onChange={v => set("subject", v)} />
-        <select style={S.select} value={f.eventType} onChange={e => set("eventType", e.target.value)}>
+        <select style={S.select} value={f.eventType} onChange={e => { set("eventType", e.target.value); if (e.target.value === "other") set("subject", ""); }}>
           {["class", "quiz", "exam", "lab", "tutorial", "other"].map(t => <option key={t}>{t}</option>)}
         </select>
+        {f.eventType !== "other" && <SubjectSelect subjects={subjects} value={f.subject} onChange={v => set("subject", v)} />}
       </div>
       <div style={S.fRow}>
         <select style={S.select} value={f.startHour} onChange={e => set("startHour", +e.target.value)}>
