@@ -11,8 +11,8 @@ input,select,textarea,button{font-family:'DM Sans',sans-serif}
 }
 @media(max-width:768px){
   [data-sh="root"]{flex-direction:column !important}
-  [data-sh="sidebar"]{width:100% !important;min-width:100% !important;flex-direction:row !important;padding:6px 8px !important;overflow-x:auto !important;overflow-y:hidden !important;height:auto !important;max-height:52px !important;min-height:auto !important}
-  [data-sh="sidebar-top"]{flex-direction:row !important;gap:2px !important;overflow-x:auto !important;flex:0 !important}
+  [data-sh="sidebar"]{width:100% !important;min-width:100% !important;flex-direction:row !important;align-items:center !important;padding:6px 8px !important;overflow:hidden !important;height:auto !important;max-height:52px !important;min-height:auto !important;flex-shrink:0 !important}
+  [data-sh="sidebar-top"]{display:flex !important;flex-direction:row !important;align-items:center !important;gap:2px !important;overflow-x:auto !important;overflow-y:hidden !important;flex:1 1 auto !important;min-width:0 !important}
   [data-sh="sidebar-bottom"]{display:none !important}
   [data-sh="sidebar-clock"]{display:none !important}
   [data-sh="main"]{padding:16px !important}
@@ -22,9 +22,9 @@ input,select,textarea,button{font-family:'DM Sans',sans-serif}
   [data-sh="week-grid"]{grid-template-columns:repeat(3,1fr) !important}
   [data-sh="logo"]{margin-bottom:0 !important;display:none !important}
   [data-sh="logo-text"],[data-sh="nav-label"],[data-sh="search-btn"]{display:none !important}
-  [data-sh="nav-btn"]{padding:8px !important;font-size:16px !important;justify-content:center !important}
+  [data-sh="nav-btn"],[data-sh="mobile-tool"]{padding:8px !important;font-size:16px !important;justify-content:center !important;width:auto !important;flex:0 0 auto !important}
   [data-sh="hamburger"]{display:none !important}
-  [data-sh="mobile-tool"]{display:flex !important;flex-shrink:0 !important}
+  [data-sh="mobile-tool"]{display:flex !important}
   [data-sh="sidebar"]{padding-left:calc(8px + env(safe-area-inset-left)) !important;padding-right:calc(8px + env(safe-area-inset-right)) !important}
   [data-sh="main"]{padding-bottom:calc(16px + env(safe-area-inset-bottom)) !important}
 }
