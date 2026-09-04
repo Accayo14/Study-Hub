@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { useStudyData } from './hooks/useStudyData';
+import { isConfigured } from './lib/supabase';
 import Auth from './pages/Auth';
+import Setup from './pages/Setup';
 import Dashboard from './components/Dashboard';
 import Assignments from './components/Assignments';
 import Focus from './components/Focus';
@@ -140,9 +142,13 @@ export default function App() {
   return (
     <>
       <style>{CSS}</style>
-      <AuthProvider>
-        <AppRouter />
-      </AuthProvider>
+      {isConfigured ? (
+        <AuthProvider>
+          <AppRouter />
+        </AuthProvider>
+      ) : (
+        <Setup />
+      )}
     </>
   );
 }
