@@ -2,6 +2,7 @@ export const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700&family=DM+Serif+Display&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
 html,body,#root{height:100%;width:100%;overflow:hidden;background:#faf8f5}
+[data-sh="mobile-tool"]{display:none !important}
 ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px}
 input,select,textarea,button{font-family:'DM Sans',sans-serif}
 @media(max-width:1024px){
@@ -23,12 +24,15 @@ input,select,textarea,button{font-family:'DM Sans',sans-serif}
   [data-sh="logo-text"],[data-sh="nav-label"],[data-sh="search-btn"]{display:none !important}
   [data-sh="nav-btn"]{padding:8px !important;font-size:16px !important;justify-content:center !important}
   [data-sh="hamburger"]{display:none !important}
+  [data-sh="mobile-tool"]{display:flex !important;flex-shrink:0 !important}
+  [data-sh="sidebar"]{padding-left:calc(8px + env(safe-area-inset-left)) !important;padding-right:calc(8px + env(safe-area-inset-right)) !important}
+  [data-sh="main"]{padding-bottom:calc(16px + env(safe-area-inset-bottom)) !important}
 }
 `;
 
 export const S = {
-  root: { display: "flex", height: "100vh", fontFamily: "'DM Sans',sans-serif", background: "#faf8f5", color: "#2b2b2b", overflow: "hidden" },
-  loadWrap: { display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", background: "#faf8f5", fontFamily: "'DM Sans',sans-serif" },
+  root: { display: "flex", height: "100dvh", fontFamily: "'DM Sans',sans-serif", background: "#faf8f5", color: "#2b2b2b", overflow: "hidden" },
+  loadWrap: { display: "flex", alignItems: "center", justifyContent: "center", height: "100dvh", background: "#faf8f5", fontFamily: "'DM Sans',sans-serif" },
   loadPulse: { fontFamily: "'DM Serif Display',serif", fontSize: 28, color: "#2b2b2b", opacity: 0.5 },
 
   sidebar: { width: 190, minWidth: 190, background: "#2b2b2b", color: "#faf8f5", display: "flex", flexDirection: "column", padding: "16px 10px", flexShrink: 0, overflow: "hidden", transition: "width 0.2s, min-width 0.2s" },

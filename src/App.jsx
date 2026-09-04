@@ -41,6 +41,38 @@ function SidebarClock({ use24h }) {
   );
 }
 
+/** The sidebar footer is hidden on phones, so these controls get their own sheet. */
+function AccountSheet({ user, D, use24h, toggle24h, signOut, onClose }) {
+  return (
+    <div style={S.modal} onClick={onClose}>
+      <div style={{ ...S.modalBox, maxWidth: 340 }} onClick={e => e.stopPropagation()}>
+        <div style={S.modalHead}>
+          <div>
+            <div style={S.modalTitle}>Account</div>
+            <div style={{ fontSize: 12, color: "#888", marginTop: 4, wordBreak: "break-all" }}>
+              {user.user_metadata?.full_name || user.email}
+            </div>
+          </div>
+          <button style={S.closeBtn} onClick={onClose}>✕</button>
+        </div>
+        <div style={S.settingsRow}>
+          <span style={S.settingsLabel}>Pending assignments</span>
+          <span style={{ fontWeight: 700 }}>{D.assignments.filter(a => !a.done).length}</span>
+        </div>
+        <div style={S.settingsRow}>
+          <span style={S.settingsLabel}>Exams left</span>
+          <span style={{ fontWeight: 700 }}>{D.exams.filter(e => !e.done).length}</span>
+        </div>
+        <div style={S.settingsRow}>
+          <span style={S.settingsLabel}>Time format</span>
+          <button style={S.ghostBtn} onClick={toggle24h}>{use24h ? "24-hour" : "12-hour"}</button>
+        </div>
+        <button style={{ ...S.primaryBtn, width: "100%", marginTop: 16 }} onClick={signOut}>Sign Out</button>
+      </div>
+    </div>
+  );
+}
+
 function Main() {
   const { user, signOut } = useAuth();
   const { D, loading, ...ops } = useStudyData(user.id);
@@ -48,6 +80,7 @@ function Main() {
   const [form, setForm] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth > 900);
   const [showSearch, setShowSearch] = useState(false);
+  const [showAccount, setShowAccount] = useState(false);
   const [use24h, setUse24h] = useState(() => localStorage.getItem("studyhub_24h") === "true");
 
   const toggle24h = () => {
@@ -69,11 +102,11 @@ function Main() {
         e.preventDefault();
         setShowSearch(v => !v);
       }
-      if (e.key === 'Escape' && showSearch) setShowSearch(false);
+      if (e.key === 'Escape') { setShowSearch(false); setShowAccount(false); }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [showSearch]);
+  }, []);
 
   if (loading || !D) return <div style={S.loadWrap}><div style={S.loadPulse}>StudyHub</div></div>;
 
@@ -82,6 +115,10 @@ function Main() {
   return (
     <div style={S.root} data-sh="root">
       {showSearch && <Search D={D} onClose={() => setShowSearch(false)} onNavigate={setTab} />}
+      {showAccount && (
+        <AccountSheet user={user} D={D} use24h={use24h} toggle24h={toggle24h}
+          signOut={signOut} onClose={() => setShowAccount(false)} />
+      )}
       <nav style={{ ...S.sidebar, ...(sidebarOpen ? {} : S.sidebarCollapsed) }} data-sh="sidebar">
         <div style={S.sidebarTop} data-sh="sidebar-top">
           <div style={{ display: "flex", alignItems: "center", justifyContent: sidebarOpen ? "space-between" : "center", marginBottom: sidebarOpen ? 8 : 12, padding: sidebarOpen ? "0" : "0" }} data-sh="logo">
@@ -109,6 +146,14 @@ function Main() {
               {sidebarOpen && <span data-sh="nav-label">{t.label}</span>}
             </button>
           ))}
+          <button onClick={() => setShowSearch(true)} style={{ ...S.navBtn, ...S.navCollapsed }}
+            data-sh="mobile-tool" title="Search" aria-label="Search">
+            <span style={S.navIcon}>🔍</span>
+          </button>
+          <button onClick={() => setShowAccount(true)} style={{ ...S.navBtn, ...S.navCollapsed }}
+            data-sh="mobile-tool" title="Account" aria-label="Account">
+            <span style={S.navIcon}>⚙</span>
+          </button>
         </div>
         {sidebarOpen && (
           <div style={S.sidebarBottom} data-sh="sidebar-bottom">
