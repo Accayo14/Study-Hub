@@ -3,6 +3,7 @@ import { AuthProvider } from './contexts/AuthProvider';
 import { useAuth } from './contexts/auth-context';
 import { useStudyData } from './hooks/useStudyData';
 import { isConfigured } from './lib/supabase';
+import { readTheme, setTheme } from './lib/theme';
 import Auth from './pages/Auth';
 import Setup from './pages/Setup';
 import ResetPassword from './pages/ResetPassword';
@@ -48,6 +49,10 @@ function SidebarClock({ use24h }) {
 /** The sidebar footer is hidden on phones, so these controls get their own sheet. */
 function AccountSheet({ user, D, use24h, toggle24h, signOut, onClose }) {
   const [changingPw, setChangingPw] = useState(false);
+  const [theme, setThemePref] = useState(readTheme);
+
+  const pickTheme = (pref) => { setTheme(pref); setThemePref(pref); };
+
   return (
     <div style={S.modal} onClick={onClose}>
       <div style={{ ...S.modalBox, maxWidth: 340 }} onClick={e => e.stopPropagation()}>
@@ -67,6 +72,18 @@ function AccountSheet({ user, D, use24h, toggle24h, signOut, onClose }) {
         <div style={S.settingsRow}>
           <span style={S.settingsLabel}>Exams left</span>
           <span style={{ fontWeight: 700 }}>{D.exams.filter(e => !e.done).length}</span>
+        </div>
+        <div style={S.settingsRow}>
+          <span style={S.settingsLabel}>Theme</span>
+          <div style={{ display: "flex", gap: 4 }}>
+            {["light", "dark", "system"].map(opt => (
+              <button key={opt} onClick={() => pickTheme(opt)}
+                style={{ ...S.ghostBtn, padding: "5px 10px", fontSize: 11, textTransform: "capitalize",
+                  ...(theme === opt ? { background: "var(--ink)", color: "var(--ink-fg)", borderColor: "var(--ink)" } : {}) }}>
+                {opt}
+              </button>
+            ))}
+          </div>
         </div>
         <div style={S.settingsRow}>
           <span style={S.settingsLabel}>Time format</span>

@@ -15,6 +15,21 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="StudyHub" />
+
+    <style>
+      :root { color-scheme: light; background: #faf8f5; }
+      :root[data-theme="dark"] { color-scheme: dark; background: #15141a; }
+    </style>
+    <script>
+      (function () {
+        try {
+          var pref = localStorage.getItem('studyhub_theme') || 'system';
+          var dark = pref === 'dark' ||
+            (pref === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+        } catch (e) { /* private mode: fall through to light */ }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

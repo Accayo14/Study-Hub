@@ -19,6 +19,26 @@ export const CSS = `
   --grid-line:#ece7e0; --grid-half:#e0d6ca; --day-event-time:#8a8279;
   --overlay:rgba(0,0,0,0.35);
 }
+
+/* Dark palette. Same token names, so nothing downstream changes. The accent
+   hues are lightened, because a colour tuned for white paper goes muddy on a
+   dark ground -- and --on-accent flips to dark text to stay readable on them. */
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#15141a; --surface:#1d1c24; --surface-sunken:#24222c;
+  --tag-bg:#2e2b38; --divider:#272531;
+  --text:#eae7f0; --text-2:#c4c0ce; --text-3:#b0abbd; --text-dim:#948fa3;
+  --text-faint:#857f95; --text-ghost:#757085; --text-ghost-2:#665f78; --outline:#4a4458;
+  --border:#302d3b; --border-2:#383445; --border-soft:#2a2734; --border-input:#3d3949;
+  --ink:#eae7f0; --ink-fg:#15141a;
+  --side-bg:#100f15; --side-fg:#eae7f0; --side-dim:#8d8799; --side-line:#29262f; --side-active:#2c2937;
+  --danger:#ff6b6b; --danger-bg:#3a1f24; --warn:#f0906f; --gold:#e0b571;
+  --green:#7fae9b; --green-bg:#1d3329; --blue:#6aa5c9; --violet:#9092ea; --violet-bg:#2b2846;
+  --slate:#9aa6bb; --today-bg:#241f2e; --on-accent:#15141a;
+  --manage-bg:#2a2733; --manage-border:#423d4f; --manage-fg:#c4c0ce;
+  --grid-line:#2b2836; --grid-half:#332f3f; --day-event-time:#9d97ab;
+  --overlay:rgba(0,0,0,0.6);
+}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body,#root{height:100%;width:100%;overflow:hidden;background:var(--bg)}
 [data-sh="mobile-tool"]{display:none !important}
