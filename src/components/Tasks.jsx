@@ -67,7 +67,9 @@ export default function Tasks({ D, form, setForm, addTask, toggleTask, deleteTas
             {c === "all" ? "All" : c}
           </button>
         ))}
-        <button style={{ ...S.filterBtn, border: "1px dashed #c0b8a8" }} onClick={() => setShowCatMgr(true)}>+ Category</button>
+        <button style={S.manageBtn} onClick={() => setShowCatMgr(true)} title="Manage categories">
+          <span aria-hidden="true">⚙</span>Manage categories
+        </button>
       </div>
       {sorted.length === 0 && <p style={S.empty}>No tasks here. Add clubs, personal errands, side projects...</p>}
       <div style={S.list}>

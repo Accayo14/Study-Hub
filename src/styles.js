@@ -91,6 +91,9 @@ export const S = {
   filterRow: { display: "flex", gap: 5, marginBottom: 18, flexWrap: "wrap" },
   filterBtn: { padding: "5px 12px", borderRadius: 18, border: "1px solid #e0d8d0", background: "#fff", fontSize: 11, fontWeight: 500, cursor: "pointer", color: "#666" },
   filterActive: { background: "#2b2b2b", color: "#faf8f5", borderColor: "#2b2b2b" },
+  // Sits at the end of a filter row but is an action, not a filter, so it is
+  // pushed to the right and given its own weight.
+  manageBtn: { marginLeft: "auto", padding: "5px 13px", borderRadius: 18, border: "1px solid #c9c0b4", background: "#f2ede7", fontSize: 11, fontWeight: 600, color: "#5a5348", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5, whiteSpace: "nowrap" },
 
   formCard: { background: "#fff", border: "1px solid #e8e0d8", borderRadius: 10, padding: 18, marginBottom: 18, display: "flex", flexDirection: "column", gap: 10 },
   fRow: { display: "flex", gap: 8, flexWrap: "wrap" },

@@ -38,7 +38,7 @@ export function SubjectSelect({ subjects, value, onChange }) {
   );
 }
 
-export function SubjectFilter({ subjects, filter, setFilter, onManage }) {
+export function SubjectFilter({ subjects, filter, setFilter, onManage, manageLabel = "Manage courses" }) {
   return (
     <div style={S.filterRow}>
       {["all", ...subjects].map(s => (
@@ -47,7 +47,9 @@ export function SubjectFilter({ subjects, filter, setFilter, onManage }) {
           {s === "all" ? "All" : s}
         </button>
       ))}
-      <button style={{ ...S.filterBtn, border: "1px dashed #c0b8a8" }} onClick={onManage}>+ Course</button>
+      <button style={S.manageBtn} onClick={onManage} title={manageLabel}>
+        <span aria-hidden="true">⚙</span>{manageLabel}
+      </button>
     </div>
   );
 }
