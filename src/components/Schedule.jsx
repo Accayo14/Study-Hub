@@ -3,6 +3,70 @@ import { HOURS, DAYS, DAYS_FULL, fmtH, toISO, today, isSameDay } from '../consta
 import { SubjectSelect } from './SubjectManager';
 import { S } from '../styles';
 
+// One hour of the daily view, in pixels. Everything on that view is positioned
+// from this, so a two hour event is exactly twice as tall as a one hour one.
+const HOUR_H = 60;
+
+const EVENT_COLORS = { class: "#457b9d", quiz: "#c1121f", exam: "#c1121f", lab: "#6b9080", tutorial: "#d4a35a", other: "#8d99ae" };
+const eventColor = (type) => EVENT_COLORS[type] || "#d4a35a";
+
+const endMinutes = (e) => (e.startHour * 60 + (e.startMin || 0)) + (e.duration || 60);
+
+/**
+ * Places a day's events on the time axis, and splits overlapping ones into
+ * side-by-side columns so neither is hidden behind the other.
+ */
+function layoutDay(events) {
+  const gridStart = HOURS[0] * 60;
+  const gridEnd = (HOURS[HOURS.length - 1] + 1) * 60;
+
+  const items = events
+    .map(e => ({
+      ev: e,
+      start: e.startHour * 60 + (e.startMin || 0),
+      end: endMinutes(e),
+    }))
+    .filter(i => i.end > gridStart && i.start < gridEnd)
+    .map(i => ({ ...i, start: Math.max(i.start, gridStart), end: Math.min(i.end, gridEnd) }))
+    .sort((a, b) => a.start - b.start || b.end - a.end);
+
+  const placed = [];
+  let cluster = [];
+  let clusterEnd = -1;
+
+  // Each cluster is a run of events that overlap in time; within it, an event
+  // takes the first column whose previous event has already finished.
+  const flush = () => {
+    if (!cluster.length) return;
+    const colEnds = [];
+    cluster.forEach(item => {
+      let col = colEnds.findIndex(end => end <= item.start);
+      if (col === -1) col = colEnds.length;
+      colEnds[col] = item.end;
+      item.col = col;
+    });
+    const cols = colEnds.length;
+    cluster.forEach(item => placed.push({
+      ev: item.ev,
+      top: ((item.start - gridStart) / 60) * HOUR_H,
+      height: Math.max(((item.end - item.start) / 60) * HOUR_H, 15),
+      left: `calc(${(item.col / cols) * 100}% + 2px)`,
+      width: `calc(${100 / cols}% - 4px)`,
+    }));
+    cluster = [];
+    clusterEnd = -1;
+  };
+
+  items.forEach(item => {
+    if (cluster.length && item.start >= clusterEnd) flush();
+    cluster.push(item);
+    clusterEnd = Math.max(clusterEnd, item.end);
+  });
+  flush();
+
+  return placed;
+}
+
 export default function Schedule({ D, form, setForm, addEvent, deleteEvent, updateEvent, use24h }) {
   const [view, setView] = useState("daily");
   const [refDate, setRefDate] = useState(new Date());
@@ -27,6 +91,22 @@ export default function Schedule({ D, form, setForm, addEvent, deleteEvent, upda
 
   const handleEdit = (ev) => { setEditing(ev); setForm(null); };
 
+  // schedule_events stores one day per row, so a weekly event on several days
+  // becomes one row per day.
+  const handleAdd = async (e) => {
+    const days = e.recurring ? e.daysOfWeek : [e.dayOfWeek];
+    for (const dayOfWeek of days) await addEvent({ ...e, dayOfWeek });
+    setForm(null);
+  };
+
+  const handleSave = async (id, fields) => {
+    const days = fields.recurring ? fields.daysOfWeek : [new Date(fields.date + "T00:00:00").getDay()];
+    const [first, ...extra] = days;
+    await updateEvent(id, { ...fields, dayOfWeek: first });
+    for (const dayOfWeek of extra) await addEvent({ ...fields, dayOfWeek });
+    setEditing(null);
+  };
+
   return (
     <div style={S.page}>
       <div style={S.pageHead}><h1 style={S.pageTitle}>Schedule</h1>
@@ -36,8 +116,8 @@ export default function Schedule({ D, form, setForm, addEvent, deleteEvent, upda
       </div>
       {(form === "schedule" || editing) && (
         <ScheduleForm subjects={D.subjects} editing={editing}
-          onAdd={e => { addEvent(e); setForm(null); }}
-          onSave={(id, fields) => { updateEvent(id, fields); setEditing(null); }}
+          onAdd={handleAdd}
+          onSave={handleSave}
           onCancel={() => { setEditing(null); setForm(null); }} />
       )}
 
@@ -69,33 +149,56 @@ export default function Schedule({ D, form, setForm, addEvent, deleteEvent, upda
 }
 
 function DailyView({ events, deleteEvent, onEdit, use24h }) {
+  const total = HOURS.length * HOUR_H;
+  const placed = layoutDay(events);
+
   return (
-    <div style={S.dailyGrid}>
-      {HOURS.map(h => {
-        const evs = events.filter(e => e.startHour === h);
-        return (
-          <div key={h} style={S.hourRow}>
-            <div style={S.hourLbl}>{fmtH(h, 0, use24h)}</div>
-            <div style={S.hourSlot}>
-              {evs.length === 0 && <div style={{ height: 36 }} />}
-              {evs.map(e => (
-                <div key={e.id} style={{ ...S.schedBlock, borderLeft: `4px solid ${e.eventType === "class" ? "#457b9d" : e.eventType === "exam" || e.eventType === "quiz" ? "#c1121f" : "#d4a35a"}` }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={S.blockName}>{e.name}</div>
-                    <div style={S.blockMeta}>
-                      {e.subject && <span style={S.tagSmall}>{e.subject}</span>}
-                      <span style={S.tagSmall}>{e.eventType}</span>
-                      <span style={{ fontSize: 11, color: "#aaa" }}>{e.duration}min {e.recurring && "· recurring"}</span>
-                    </div>
-                  </div>
-                  <button style={S.editBtn} onClick={() => onEdit(e)} title="Edit">✎</button>
-                  <button style={S.xBtn} onClick={() => deleteEvent(e.id)}>✕</button>
-                </div>
-              ))}
-            </div>
+    <div style={S.dayWrap}>
+      <div style={{ ...S.dayGutter, height: total }}>
+        {HOURS.map((h, i) => (
+          <div key={h} style={{ ...S.dayHourLbl, top: i * HOUR_H }}>{fmtH(h, 0, use24h)}</div>
+        ))}
+      </div>
+      <div style={{ ...S.dayTrack, height: total }}>
+        {HOURS.map((h, i) => (
+          <div key={h}>
+            <div style={{ ...S.dayHourLine, top: i * HOUR_H }} />
+            <div style={{ ...S.dayHalfLine, top: i * HOUR_H + HOUR_H / 2 }} />
           </div>
-        );
-      })}
+        ))}
+        <div style={{ ...S.dayHourLine, top: total }} />
+
+        {events.length === 0 && <div style={S.dayEmpty}>Nothing scheduled.</div>}
+
+        {placed.map(({ ev, top, height, left, width }) => {
+          const color = eventColor(ev.eventType);
+          const end = endMinutes(ev);
+          const range = `${fmtH(ev.startHour, ev.startMin, use24h)} – ${fmtH(Math.floor(end / 60) % 24, end % 60, use24h)}`;
+          // Short events have no room for every line, so drop detail as they shrink.
+          const showTime = height >= 32;
+          const showMeta = height >= 58;
+          return (
+            <div key={ev.id} onClick={() => onEdit(ev)} title={`${ev.name} · ${range}`}
+              style={{ ...S.dayEvent, top, height, left, width, background: `${color}1a`, borderLeft: `3px solid ${color}` }}>
+              <div style={S.dayEventName}>{ev.name}</div>
+              {showTime && <div style={S.dayEventTime}>{range}</div>}
+              {showMeta && (
+                <div style={{ ...S.blockMeta, marginTop: 4 }}>
+                  {ev.subject && <span style={S.tagSmall}>{ev.subject}</span>}
+                  <span style={S.tagSmall}>{ev.eventType}</span>
+                  {ev.recurring && <span style={{ fontSize: 10, color: "#aaa" }}>· weekly</span>}
+                </div>
+              )}
+              {height >= 26 && (
+                <div style={S.dayEventBtns}>
+                  <button style={S.xBtn} title="Delete"
+                    onClick={e => { e.stopPropagation(); deleteEvent(ev.id); }}>✕</button>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -118,7 +221,7 @@ function WeeklyView({ refDate, getEventsForDay, onEdit, use24h }) {
             </div>
             <div style={S.weekEvents}>
               {evs.map(e => (
-                <div key={e.id} style={{ ...S.weekEvent, borderLeft: `3px solid ${e.eventType === "class" ? "#457b9d" : e.eventType === "exam" || e.eventType === "quiz" ? "#c1121f" : "#d4a35a"}`, cursor: "pointer" }}
+                <div key={e.id} style={{ ...S.weekEvent, borderLeft: `3px solid ${eventColor(e.eventType)}`, cursor: "pointer" }}
                   onClick={() => onEdit(e)}>
                   <div style={{ fontSize: 10, color: "#999" }}>{fmtH(e.startHour, e.startMin, use24h)}</div>
                   <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.2 }}>{e.name}</div>
@@ -153,7 +256,7 @@ function MonthlyView({ refDate, getEventsForDay }) {
             <div key={i} style={{ ...S.monthCell, ...(isToday ? { background: "#fdf8f0" } : {}) }}>
               <div style={{ ...S.monthDateNum, ...(isToday ? { color: "#c1121f", fontWeight: 700 } : {}) }}>{d.getDate()}</div>
               {evs.slice(0, 2).map(e => (
-                <div key={e.id} style={{ ...S.monthDot, background: e.eventType === "class" ? "#457b9d" : e.eventType === "exam" || e.eventType === "quiz" ? "#c1121f" : "#d4a35a" }}>
+                <div key={e.id} style={{ ...S.monthDot, background: eventColor(e.eventType) }}>
                   <span style={{ fontSize: 9, color: "#fff", overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{e.name}</span>
                 </div>
               ))}
@@ -167,14 +270,20 @@ function MonthlyView({ refDate, getEventsForDay }) {
 }
 
 function ScheduleForm({ subjects, editing, onAdd, onSave, onCancel }) {
-  const initial = editing
-    ? { name: editing.name, subject: editing.subject, eventType: editing.eventType, startHour: editing.startHour, startMin: editing.startMin, duration: editing.duration, recurring: editing.recurring, dayOfWeek: editing.dayOfWeek, date: editing.date || today() }
-    : { name: "", subject: subjects[0] || "", eventType: "class", startHour: 9, startMin: 0, duration: 60, recurring: true, dayOfWeek: 1, date: today() };
-  const [f, setF] = useState(initial);
+  const [f, setF] = useState(() => editing
+    ? { name: editing.name, subject: editing.subject, eventType: editing.eventType, startHour: editing.startHour, startMin: editing.startMin, duration: editing.duration, recurring: editing.recurring, daysOfWeek: [editing.dayOfWeek ?? 1], date: editing.date || today() }
+    : { name: "", subject: subjects[0] || "", eventType: "class", startHour: 9, startMin: 0, duration: 60, recurring: true, daysOfWeek: [1], date: today() });
   const set = (k, v) => setF(p => ({ ...p, [k]: v }));
 
+  const toggleDay = (i) => set("daysOfWeek",
+    f.daysOfWeek.includes(i)
+      ? f.daysOfWeek.filter(d => d !== i)
+      : [...f.daysOfWeek, i].sort((a, b) => a - b));
+
+  const noDays = f.recurring && f.daysOfWeek.length === 0;
+
   const handleSubmit = () => {
-    if (!f.name.trim()) return;
+    if (!f.name.trim() || noDays) return;
     if (editing) onSave(editing.id, { ...f, name: f.name.trim() });
     else onAdd({ ...f, name: f.name.trim() });
   };
@@ -204,15 +313,24 @@ function ScheduleForm({ subjects, editing, onAdd, onSave, onCancel }) {
           <input type="checkbox" checked={f.recurring} onChange={e => set("recurring", e.target.checked)} /> Recurring weekly
         </label>
         {f.recurring ? (
-          <select style={S.select} value={f.dayOfWeek} onChange={e => set("dayOfWeek", +e.target.value)}>
-            {DAYS_FULL.map((d, i) => <option key={i} value={i}>{d}</option>)}
-          </select>
+          <div style={S.dayPicker}>
+            {DAYS.map((d, i) => (
+              <button key={i} type="button" title={DAYS_FULL[i]} onClick={() => toggleDay(i)}
+                style={{ ...S.dayToggle, ...(f.daysOfWeek.includes(i) ? S.dayToggleOn : {}) }}>
+                {d}
+              </button>
+            ))}
+          </div>
         ) : (
           <input style={S.input} type="date" value={f.date} onChange={e => set("date", e.target.value)} />
         )}
       </div>
+      {noDays && <p style={{ fontSize: 12, color: "#c1121f", margin: 0 }}>Pick at least one day.</p>}
       <div style={S.fRow}>
-        <button style={S.primaryBtn} onClick={handleSubmit}>{editing ? "Save Changes" : "Add Event"}</button>
+        <button style={{ ...S.primaryBtn, ...(noDays ? { opacity: 0.5, cursor: "not-allowed" } : {}) }}
+          onClick={handleSubmit} disabled={noDays}>
+          {editing ? "Save Changes" : "Add Event"}
+        </button>
         {editing && <button style={S.ghostBtn} onClick={onCancel}>Cancel</button>}
       </div>
     </div>

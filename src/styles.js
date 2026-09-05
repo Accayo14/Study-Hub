@@ -146,11 +146,23 @@ export const S = {
   arrowBtn: { width: 30, height: 30, border: "1px solid #e0d8d0", borderRadius: 6, background: "#fff", cursor: "pointer", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center" },
   dateLabel: { fontSize: 14, fontWeight: 600, minWidth: 120, textAlign: "center" },
 
-  dailyGrid: { display: "flex", flexDirection: "column" },
-  hourRow: { display: "flex", minHeight: 48, borderBottom: "1px solid #f0ece6" },
-  hourLbl: { width: 64, fontSize: 11, color: "#aaa", fontWeight: 500, paddingTop: 6, flexShrink: 0 },
-  hourSlot: { flex: 1, display: "flex", flexDirection: "column", gap: 4, padding: "4px 0" },
-  schedBlock: { background: "#fff", border: "1px solid #e8e0d8", borderRadius: 7, padding: "8px 12px", display: "flex", alignItems: "center" },
+  // Daily view is a real time axis: one hour is a fixed number of pixels and
+  // every event is placed and sized from its start time and duration.
+  dayWrap: { display: "flex", border: "1px solid #e0d8d0", borderRadius: 10, background: "#fff", padding: "14px 12px 14px 0", overflow: "hidden" },
+  dayGutter: { position: "relative", width: 64, flexShrink: 0 },
+  dayHourLbl: { position: "absolute", right: 10, transform: "translateY(-50%)", fontSize: 11, color: "#aaa", fontWeight: 500, whiteSpace: "nowrap" },
+  dayTrack: { position: "relative", flex: 1, minWidth: 0 },
+  dayHourLine: { position: "absolute", left: 0, right: 0, borderTop: "1px solid #ece7e0" },
+  dayHalfLine: { position: "absolute", left: 0, right: 0, borderTop: "1px dotted #e0d6ca" },
+  dayEvent: { position: "absolute", boxSizing: "border-box", borderRadius: 6, padding: "3px 8px", overflow: "hidden", cursor: "pointer" },
+  dayEventName: { fontWeight: 600, fontSize: 12, lineHeight: 1.25, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+  dayEventTime: { fontSize: 10, color: "#8a8279", lineHeight: 1.35 },
+  dayEventBtns: { position: "absolute", top: 2, right: 4, display: "flex", gap: 2 },
+  dayEmpty: { position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: "#bbb", fontSize: 13, pointerEvents: "none" },
+
+  dayPicker: { display: "flex", gap: 4, flexWrap: "wrap" },
+  dayToggle: { width: 38, padding: "8px 0", borderRadius: 7, border: "1px solid #e0d8d0", background: "#faf8f5", fontSize: 11, fontWeight: 600, color: "#888", cursor: "pointer" },
+  dayToggleOn: { background: "#2b2b2b", borderColor: "#2b2b2b", color: "#faf8f5" },
   blockName: { fontWeight: 600, fontSize: 13 },
   blockMeta: { display: "flex", gap: 5, alignItems: "center", marginTop: 2 },
 
