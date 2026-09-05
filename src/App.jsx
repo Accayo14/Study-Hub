@@ -181,6 +181,9 @@ function Main() {
             <button style={{ ...S.ghostBtn, marginTop: 8, width: "100%", fontSize: 10, color: "#a8a8a8", borderColor: "#3d3d3d", padding: "5px 10px" }} onClick={toggle24h}>
               {use24h ? "Switch to 12hr" : "Switch to 24hr"}
             </button>
+            <button style={{ ...S.ghostBtn, marginTop: 6, width: "100%", fontSize: 10, color: "#a8a8a8", borderColor: "#3d3d3d", padding: "5px 10px" }} onClick={() => setShowAccount(true)}>
+              Account &amp; password
+            </button>
             <button style={{ ...S.ghostBtn, marginTop: 6, width: "100%", fontSize: 11, color: "#a8a8a8", borderColor: "#3d3d3d" }} onClick={signOut}>Sign Out</button>
           </div>
         )}
