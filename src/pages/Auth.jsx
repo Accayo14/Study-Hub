@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/auth-context';
 import { allowSignUp } from '../lib/supabase';
 import { S } from '../styles';
 
@@ -11,7 +11,9 @@ export default function Auth() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, requestPasswordReset } = useAuth();
+
+  const go = (next) => { setMode(next); setError(''); setSuccess(''); };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,7 +21,11 @@ export default function Auth() {
     setSuccess('');
     setLoading(true);
 
-    if (mode === 'login' || !allowSignUp) {
+    if (mode === 'forgot') {
+      const { error } = await requestPasswordReset(email);
+      if (error) setError(error.message);
+      else setSuccess('If that email has an account, a reset link is on its way. The link expires in an hour.');
+    } else if (mode === 'login' || !allowSignUp) {
       const { error } = await signIn(email, password);
       if (error) setError(error.message);
     } else {
@@ -35,13 +41,20 @@ export default function Auth() {
     setLoading(false);
   };
 
+  const heading = mode === 'forgot' ? 'Reset your password' : 'StudyHub';
+  const submitLabel = mode === 'forgot' ? 'Send reset link' : mode === 'login' ? 'Sign In' : 'Create Account';
+
   return (
     <div style={a.wrapper}>
       <div style={a.card}>
         <div style={a.header}>
           <span style={{ fontSize: 36 }}>📚</span>
-          <h1 style={a.title}>StudyHub</h1>
-          <p style={a.subtitle}>Your student command center</p>
+          <h1 style={a.title}>{heading}</h1>
+          <p style={a.subtitle}>
+            {mode === 'forgot'
+              ? 'We will email you a link to set a new one.'
+              : 'Your student command center'}
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} style={a.form}>
@@ -55,27 +68,43 @@ export default function Auth() {
           <input
             type="email" placeholder="Email" value={email}
             onChange={e => setEmail(e.target.value)}
-            style={S.input} required
+            style={S.input} required autoComplete="email"
           />
-          <input
-            type="password" placeholder="Password (min 6 characters)" value={password}
-            onChange={e => setPassword(e.target.value)}
-            style={S.input} required minLength={6}
-          />
+          {mode !== 'forgot' && (
+            <input
+              type="password" placeholder="Password (min 6 characters)" value={password}
+              onChange={e => setPassword(e.target.value)}
+              style={S.input} required minLength={6}
+              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+            />
+          )}
           {error && <p style={a.error}>{error}</p>}
           {success && <p style={a.success}>{success}</p>}
           <button type="submit" style={{ ...S.primaryBtn, width: "100%", padding: "12px 18px", fontSize: 14 }} disabled={loading}>
-            {loading ? 'Please wait...' : mode === 'login' ? 'Sign In' : 'Create Account'}
+            {loading ? 'Please wait...' : submitLabel}
           </button>
         </form>
 
-        {allowSignUp ? (
+        {mode === 'login' && (
           <p style={a.toggle}>
-            {mode === 'login' ? "Don't have an account? " : "Already have an account? "}
-            <button style={a.link} onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError(''); setSuccess(''); }}>
-              {mode === 'login' ? 'Sign up' : 'Sign in'}
-            </button>
+            <button style={a.link} onClick={() => go('forgot')}>Forgot password?</button>
           </p>
+        )}
+        {mode === 'forgot' && (
+          <p style={a.toggle}>
+            <button style={a.link} onClick={() => go('login')}>Back to sign in</button>
+          </p>
+        )}
+
+        {allowSignUp ? (
+          mode !== 'forgot' && (
+            <p style={a.toggle}>
+              {mode === 'login' ? "Don't have an account? " : "Already have an account? "}
+              <button style={a.link} onClick={() => go(mode === 'login' ? 'signup' : 'login')}>
+                {mode === 'login' ? 'Sign up' : 'Sign in'}
+              </button>
+            </p>
+          )
         ) : (
           <p style={a.toggle}>Private instance &mdash; sign-in only.</p>
         )}
@@ -93,6 +122,6 @@ const a = {
   form: { display: "flex", flexDirection: "column", gap: 12 },
   error: { color: "#c1121f", fontSize: 13, margin: 0, padding: "6px 10px", background: "#fef2f2", borderRadius: 6 },
   success: { color: "#6b9080", fontSize: 13, margin: 0, padding: "6px 10px", background: "#f0fdf4", borderRadius: 6 },
-  toggle: { textAlign: "center", marginTop: 20, fontSize: 13, color: "#888" },
+  toggle: { textAlign: "center", marginTop: 14, fontSize: 13, color: "#888" },
   link: { background: "none", border: "none", color: "#2b2b2b", fontWeight: 700, cursor: "pointer", fontSize: 13, textDecoration: "underline" },
 };

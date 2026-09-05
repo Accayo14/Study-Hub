@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { AuthProvider } from './contexts/AuthProvider';
+import { useAuth } from './contexts/auth-context';
 import { useStudyData } from './hooks/useStudyData';
 import { isConfigured } from './lib/supabase';
 import Auth from './pages/Auth';
 import Setup from './pages/Setup';
+import ResetPassword from './pages/ResetPassword';
+import ChangePassword from './components/ChangePassword';
 import Dashboard from './components/Dashboard';
 import Assignments from './components/Assignments';
 import Focus from './components/Focus';
@@ -17,8 +20,9 @@ import { TABS } from './constants';
 import { S, CSS } from './styles';
 
 function AppRouter() {
-  const { user, loading } = useAuth();
+  const { user, loading, recovering } = useAuth();
   if (loading) return <div style={S.loadWrap}><div style={S.loadPulse}>StudyHub</div></div>;
+  if (recovering && user) return <ResetPassword />;
   if (!user) return <Auth />;
   return <Main />;
 }
@@ -43,6 +47,7 @@ function SidebarClock({ use24h }) {
 
 /** The sidebar footer is hidden on phones, so these controls get their own sheet. */
 function AccountSheet({ user, D, use24h, toggle24h, signOut, onClose }) {
+  const [changingPw, setChangingPw] = useState(false);
   return (
     <div style={S.modal} onClick={onClose}>
       <div style={{ ...S.modalBox, maxWidth: 340 }} onClick={e => e.stopPropagation()}>
@@ -67,6 +72,17 @@ function AccountSheet({ user, D, use24h, toggle24h, signOut, onClose }) {
           <span style={S.settingsLabel}>Time format</span>
           <button style={S.ghostBtn} onClick={toggle24h}>{use24h ? "24-hour" : "12-hour"}</button>
         </div>
+        <div style={S.settingsRow}>
+          <span style={S.settingsLabel}>Password</span>
+          <button style={S.ghostBtn} onClick={() => setChangingPw(v => !v)}>
+            {changingPw ? "Cancel" : "Change"}
+          </button>
+        </div>
+        {changingPw && (
+          <div style={{ marginTop: 12 }}>
+            <ChangePassword submitLabel="Save password" onDone={() => setChangingPw(false)} />
+          </div>
+        )}
         <button style={{ ...S.primaryBtn, width: "100%", marginTop: 16 }} onClick={signOut}>Sign Out</button>
       </div>
     </div>
