@@ -20,5 +20,6 @@ cascade;
 -- files, empty the "note-files" bucket from Dashboard > Storage.
 delete from storage.objects where bucket_id = 'note-files';
 
--- On the next sign-in the app re-seeds the default subject list from
--- src/constants.js, so an empty subjects table is expected here.
+-- On the next sign-in the app re-seeds DEFAULT_SUBJECTS from src/constants.js,
+-- which is empty by default -- so expect to add your courses again with
+-- "+ Course" unless you have filled that list in.

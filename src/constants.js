@@ -1,4 +1,7 @@
-export const DEFAULT_SUBJECTS = ["ME218", "ME213", "ME230", "ME444", "ME228", "ME219", "DE250", "DS303"];
+// Courses seeded into a brand new account on first sign-in. Empty so that
+// anyone signing up starts clean and adds their own with "+ Course";
+// a personal fork can list its own course codes here instead.
+export const DEFAULT_SUBJECTS = [];
 export const PRIORITIES = ["Low", "Medium", "High", "Urgent"];
 export const P_COLORS = { Low: "#6b9080", Medium: "#d4a35a", High: "#e07a5f", Urgent: "#c1121f" };
 export const TASK_CATEGORIES = ["Club / Society", "Sports", "Personal", "Freelance", "Volunteering", "Other"];

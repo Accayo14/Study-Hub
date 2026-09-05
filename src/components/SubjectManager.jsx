@@ -32,6 +32,7 @@ export function SubjectManager({ subjects, addSubject, removeSubject, onClose })
 export function SubjectSelect({ subjects, value, onChange }) {
   return (
     <select style={S.select} value={value} onChange={e => onChange(e.target.value)}>
+      {subjects.length === 0 && <option value="">No courses yet</option>}
       {subjects.map(s => <option key={s}>{s}</option>)}
     </select>
   );

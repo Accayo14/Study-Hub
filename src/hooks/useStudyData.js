@@ -30,12 +30,14 @@ export function useStudyData(userId) {
         ]);
 
         let subjectNames;
-        if (!subjects || subjects.length === 0) {
-          const defaults = DEFAULT_SUBJECTS.map(name => ({ user_id: userId, name }));
-          await supabase.from('subjects').insert(defaults);
+        if (subjects && subjects.length > 0) {
+          subjectNames = subjects.map(s => s.name);
+        } else if (DEFAULT_SUBJECTS.length > 0) {
+          await supabase.from('subjects').insert(DEFAULT_SUBJECTS.map(name => ({ user_id: userId, name })));
           subjectNames = [...DEFAULT_SUBJECTS];
         } else {
-          subjectNames = subjects.map(s => s.name);
+          // No seed list configured: the account starts with no courses.
+          subjectNames = [];
         }
 
         setData({
