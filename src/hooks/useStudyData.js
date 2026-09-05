@@ -33,8 +33,17 @@ export function useStudyData(userId) {
         if (subjects && subjects.length > 0) {
           subjectNames = subjects.map(s => s.name);
         } else if (DEFAULT_SUBJECTS.length > 0) {
-          await supabase.from('subjects').insert(DEFAULT_SUBJECTS.map(name => ({ user_id: userId, name })));
-          subjectNames = [...DEFAULT_SUBJECTS];
+          const { error } = await supabase.from('subjects')
+            .insert(DEFAULT_SUBJECTS.map(name => ({ user_id: userId, name })));
+          if (error) {
+            // Showing the seed list when the insert failed makes the courses look
+            // saved when they are not: they vanish on the next load, and Manage
+            // courses cannot remove them because no row exists.
+            console.error('Failed to seed default subjects:', error);
+            subjectNames = [];
+          } else {
+            subjectNames = [...DEFAULT_SUBJECTS];
+          }
         } else {
           // No seed list configured: the account starts with no courses.
           subjectNames = [];
@@ -80,12 +89,23 @@ export function useStudyData(userId) {
   // ── Subjects ──
   const addSubject = async (name) => {
     setData(prev => ({ ...prev, subjects: [...prev.subjects, name] }));
-    await supabase.from('subjects').insert({ user_id: userId, name });
+    const { error } = await supabase.from('subjects').insert({ user_id: userId, name });
+    if (error) {
+      // Undo the optimistic update so the list matches what is actually stored.
+      console.error('addSubject failed:', error);
+      setData(prev => ({ ...prev, subjects: prev.subjects.filter(s => s !== name) }));
+      alert(`Could not add "${name}": ${error.message}`);
+    }
   };
 
   const removeSubject = async (name) => {
     setData(prev => ({ ...prev, subjects: prev.subjects.filter(s => s !== name) }));
-    await supabase.from('subjects').delete().eq('user_id', userId).eq('name', name);
+    const { error } = await supabase.from('subjects').delete().eq('user_id', userId).eq('name', name);
+    if (error) {
+      console.error('removeSubject failed:', error);
+      setData(prev => ({ ...prev, subjects: [...prev.subjects, name] }));
+      alert(`Could not remove "${name}": ${error.message}`);
+    }
   };
 
   // ── Assignments ──
