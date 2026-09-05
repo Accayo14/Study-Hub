@@ -195,13 +195,12 @@ function Main() {
             </div>
             <div style={S.miniStat}>{D.assignments.filter(a => !a.done).length} pending</div>
             <div style={S.miniStat}>{D.exams.filter(e => !e.done).length} exams left</div>
-            <button style={{ ...S.ghostBtn, marginTop: 8, width: "100%", fontSize: 10, color: "var(--side-dim)", borderColor: "var(--side-line)", padding: "5px 10px" }} onClick={toggle24h}>
-              {use24h ? "Switch to 12hr" : "Switch to 24hr"}
+            {/* Time format, theme, password and sign-out all live in the sheet,
+                so the footer needs one way in rather than a stack of buttons. */}
+            <button style={{ ...S.ghostBtn, marginTop: 10, width: "100%", fontSize: 11, color: "var(--side-dim)", borderColor: "var(--side-line)" }}
+              onClick={() => setShowAccount(true)}>
+              Account &amp; settings
             </button>
-            <button style={{ ...S.ghostBtn, marginTop: 6, width: "100%", fontSize: 10, color: "var(--side-dim)", borderColor: "var(--side-line)", padding: "5px 10px" }} onClick={() => setShowAccount(true)}>
-              Account &amp; password
-            </button>
-            <button style={{ ...S.ghostBtn, marginTop: 6, width: "100%", fontSize: 11, color: "var(--side-dim)", borderColor: "var(--side-line)" }} onClick={signOut}>Sign Out</button>
           </div>
         )}
       </nav>

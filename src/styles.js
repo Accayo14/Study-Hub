@@ -17,7 +17,7 @@ export const CSS = `
   --slate:#8d99ae; --today-bg:#fdf8f0; --on-accent:#ffffff;
   --manage-bg:#f2ede7; --manage-border:#c9c0b4; --manage-fg:#5a5348;
   --grid-line:#ece7e0; --grid-half:#e0d6ca; --day-event-time:#8a8279;
-  --overlay:rgba(0,0,0,0.35);
+  --overlay:rgba(0,0,0,0.35); --hover-filter:brightness(0.96);
 }
 
 /* Dark palette. Same token names, so nothing downstream changes. The accent
@@ -37,13 +37,24 @@ export const CSS = `
   --slate:#9aa6bb; --today-bg:#241f2e; --on-accent:#15141a;
   --manage-bg:#2a2733; --manage-border:#423d4f; --manage-fg:#c4c0ce;
   --grid-line:#2b2836; --grid-half:#332f3f; --day-event-time:#9d97ab;
-  --overlay:rgba(0,0,0,0.6);
+  --overlay:rgba(0,0,0,0.6); --hover-filter:brightness(1.18);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body,#root{height:100%;width:100%;overflow:hidden;background:var(--bg)}
 [data-sh="mobile-tool"]{display:none !important}
 ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:var(--outline);border-radius:3px}
 input,select,textarea,button{font-family:'DM Sans',sans-serif}
+
+button:not(:disabled){cursor:pointer}
+button:not(:disabled):hover{filter:var(--hover-filter)}
+:focus-visible{outline:2px solid var(--violet);outline-offset:2px;border-radius:4px}
+[data-sh="nav-btn"]:hover,[data-sh="mobile-tool"]:hover{background:var(--side-active);color:var(--side-fg)}
+[data-sh="row"]{transition:border-color .12s}
+[data-sh="row"]:hover{border-color:var(--outline)}
+[data-sh="icon-btn"]{opacity:.5;transition:opacity .12s,color .12s}
+[data-sh="row"]:hover [data-sh="icon-btn"],[data-sh="icon-btn"]:focus-visible{opacity:1}
+[data-sh="icon-btn"]:hover{opacity:1;color:var(--text)}
+[data-sh="del-btn"]:hover{color:var(--danger)}
 @media(max-width:1024px){
   [data-sh="dash-cols"]{grid-template-columns:1fr !important}
   [data-sh="dash-grid"]{grid-template-columns:repeat(2,1fr) !important}
@@ -119,10 +130,13 @@ export const S = {
   badge: { color: "var(--on-accent)", padding: "1px 7px", borderRadius: 4, fontWeight: 600, fontSize: 10, textTransform: "uppercase" },
   tagSmall: { background: "var(--tag-bg)", color: "var(--text-3)", padding: "2px 7px", borderRadius: 4, fontWeight: 500, fontSize: 10 },
   dueTxt: { fontWeight: 600, fontSize: 11 },
+  duePill: { fontSize: 11, fontWeight: 700, padding: "3px 9px", borderRadius: 20, whiteSpace: "nowrap", letterSpacing: "0.2px" },
+  courseLine: { fontSize: 13, fontWeight: 700, letterSpacing: "0.2px", marginBottom: 2 },
+  rowSub: { display: "flex", gap: 8, alignItems: "center", fontSize: 12, color: "var(--text-dim)", flexWrap: "wrap" },
 
   checkBtn: { width: 26, height: 26, borderRadius: "50%", border: "2px solid var(--outline)", background: "transparent", cursor: "pointer", fontSize: 13, color: "var(--outline)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 },
-  xBtn: { background: "none", border: "none", cursor: "pointer", color: "var(--outline)", fontSize: 13, padding: 3, flexShrink: 0 },
-  editBtn: { background: "none", border: "none", cursor: "pointer", color: "var(--text-ghost)", fontSize: 14, padding: "2px 6px", flexShrink: 0 },
+  xBtn: { background: "none", border: "none", cursor: "pointer", color: "var(--text-ghost)", fontSize: 14, padding: "6px 8px", lineHeight: 1, flexShrink: 0 },
+  editBtn: { background: "none", border: "none", cursor: "pointer", color: "var(--text-ghost)", fontSize: 14, padding: "6px 8px", lineHeight: 1, flexShrink: 0 },
   primaryBtn: { background: "var(--ink)", color: "var(--ink-fg)", border: "none", borderRadius: 7, padding: "9px 18px", fontSize: 13, fontWeight: 600, cursor: "pointer" },
   ghostBtn: { background: "none", border: "1px solid var(--border-input)", borderRadius: 7, padding: "7px 14px", fontSize: 12, color: "var(--text-dim)", cursor: "pointer" },
   closeBtn: { background: "none", border: "none", fontSize: 18, cursor: "pointer", color: "var(--text-faint)" },
@@ -142,6 +156,8 @@ export const S = {
 
   doneHead: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 },
   empty: { color: "var(--text-ghost)", fontSize: 14, padding: "32px 0", textAlign: "center" },
+  // Inside a dashboard card the tall version leaves a conspicuous void.
+  emptyMini: { color: "var(--text-ghost)", fontSize: 13, padding: "6px 0 2px" },
 
   notesGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(220px,1fr))", gap: 10 },
   noteCard: { background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 10, padding: 14, cursor: "pointer", transition: "box-shadow 0.12s" },
@@ -230,3 +246,13 @@ export const S = {
   timerBtn: { background: "var(--danger)", color: "var(--on-accent)", border: "none", borderRadius: 8, padding: "11px 24px", fontSize: 14, fontWeight: 600, cursor: "pointer" },
   sessCount: { marginTop: 16, fontSize: 13, color: "var(--text-dim)" },
 };
+
+const DUE_TONE = {
+  overdue:  { background: "var(--danger)", color: "var(--on-accent)" },
+  today:    { background: "var(--warn)", color: "var(--on-accent)" },
+  tomorrow: { background: "var(--tag-bg)", color: "var(--warn)" },
+  soon:     { background: "var(--tag-bg)", color: "var(--gold)" },
+  later:    { background: "var(--tag-bg)", color: "var(--text-dim)" },
+};
+
+export const duePill = (cls) => ({ ...S.duePill, ...(DUE_TONE[cls] || DUE_TONE.later) });

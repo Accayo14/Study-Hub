@@ -44,7 +44,7 @@ export default function Dashboard({ D, setTab, use24h }) {
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div style={S.dashSection}>
             <h2 style={S.secTitle}>📋 Assignments</h2>
-            {dueSoon.length === 0 && pending.length === 0 && <p style={S.empty}>All clear!</p>}
+            {dueSoon.length === 0 && pending.length === 0 && <p style={S.emptyMini}>All clear!</p>}
             {dueSoon.length > 0 && (
               <div style={{ marginBottom: 12 }}>
                 <div style={S.subLabel}>Due Soon</div>
@@ -61,7 +61,7 @@ export default function Dashboard({ D, setTab, use24h }) {
 
           <div style={S.dashSection}>
             <h2 style={S.secTitle}>✦ Tasks</h2>
-            {openTasks.length === 0 && <p style={S.empty}>No open tasks.</p>}
+            {openTasks.length === 0 && <p style={S.emptyMini}>No open tasks.</p>}
             {openTasks.slice(0, 5).map(t => {
               const di = t.due ? dueInfo(t.due) : null;
               return (

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { dueInfo, toISO, fmtH } from '../constants';
 import { SubjectSelect } from './SubjectManager';
-import { S } from '../styles';
+import { S, duePill } from '../styles';
 
 export default function Exams({ D, form, setForm, addExam, toggleExam, deleteExam, updateExam, addEvent, deleteEvent, use24h }) {
   const upcoming = D.exams.filter(e => !e.done).sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -101,21 +101,23 @@ export default function Exams({ D, form, setForm, addExam, toggleExam, deleteExa
           const open = expanded === e.id;
           const endTime = formatEndTime(e.time, e.duration);
           return (
-            <div key={e.id} style={{ ...S.card, flexDirection: "column", cursor: "pointer" }} onClick={() => setExpanded(open ? null : e.id)}>
+            <div key={e.id} data-sh="row" style={{ ...S.card, flexDirection: "column", cursor: "pointer" }} onClick={() => setExpanded(open ? null : e.id)}>
               <div style={{ display: "flex", alignItems: "center", gap: 12, width: "100%" }}>
                 <button style={S.checkBtn} onClick={ev => { ev.stopPropagation(); toggleExam(e.id); }}>○</button>
-                <div style={{ flex: 1 }}>
-                  <div style={S.cardName}>{e.name}</div>
-                  <div style={S.cardMeta}>
-                    <span style={S.tagSmall}>{e.subject}</span>
-                    <span style={{ ...S.dueTxt, color: di.cls === "overdue" ? "var(--danger)" : di.cls === "today" ? "var(--warn)" : "var(--text-dim)" }}>{di.text}</span>
-                    {e.time && <span style={{ fontSize: 11, color: "var(--text-dim)" }}>at {fmtTime(e.time)}{endTime ? ` \u2013 ${endTime}` : ""}</span>}
-                    {e.duration && <span style={{ fontSize: 10, color: "var(--text-ghost)" }}>({e.duration} min)</span>}
+                {/* Course leads: every row reads MIDSEM or QUIZ, so the paper
+                    is what actually tells them apart. */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={S.courseLine}>{e.subject || "No course"}</div>
+                  <div style={S.rowSub}>
+                    <span style={{ fontWeight: 600, color: "var(--text-2)" }}>{e.name}</span>
+                    {e.time && <span>{fmtTime(e.time)}{endTime ? ` \u2013 ${endTime}` : ""}</span>}
+                    {e.duration && <span style={{ color: "var(--text-ghost)" }}>{e.duration} min</span>}
                   </div>
                 </div>
-                <button style={S.editBtn} onClick={ev => { ev.stopPropagation(); setEditing(e); setForm(null); }} title="Edit">✎</button>
-                <span style={{ fontSize: 12, color: "var(--text-ghost)" }}>{open ? "▲" : "▼"}</span>
-                <button style={S.xBtn} onClick={ev => { ev.stopPropagation(); handleDelete(e); }}>✕</button>
+                <span style={duePill(di.cls)}>{di.text}</span>
+                <button style={S.editBtn} data-sh="icon-btn" onClick={ev => { ev.stopPropagation(); setEditing(e); setForm(null); }} title="Edit">✎</button>
+                <span style={{ fontSize: 11, color: "var(--text-ghost)" }}>{open ? "▲" : "▼"}</span>
+                <button style={S.xBtn} data-sh="icon-btn del-btn" onClick={ev => { ev.stopPropagation(); handleDelete(e); }} title="Delete">✕</button>
               </div>
               {open && (
                 <div style={S.examDetails}>
