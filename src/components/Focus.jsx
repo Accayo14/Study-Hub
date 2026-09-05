@@ -55,8 +55,8 @@ export default function Focus({ D, updatePomodoro }) {
       <div style={S.timerWrap}>
         <div style={S.timerRing}>
           <svg viewBox="0 0 200 200" style={{ width: 220, height: 220 }}>
-            <circle cx="100" cy="100" r="90" fill="none" stroke="#e8e0d8" strokeWidth="6" />
-            <circle cx="100" cy="100" r="90" fill="none" stroke={mode === "work" ? "#c1121f" : "#6b9080"}
+            <circle cx="100" cy="100" r="90" fill="none" stroke="var(--border)" strokeWidth="6" />
+            <circle cx="100" cy="100" r="90" fill="none" stroke={mode === "work" ? "var(--danger)" : "var(--green)"}
               strokeWidth="6" strokeDasharray={565.5} strokeDashoffset={565.5 - (pct / 100) * 565.5}
               strokeLinecap="round" transform="rotate(-90 100 100)" style={{ transition: "stroke-dashoffset 0.5s" }} />
           </svg>
@@ -80,7 +80,7 @@ export default function Focus({ D, updatePomodoro }) {
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <input type="number" style={S.settingsInput} value={workMin}
                 onChange={e => setWorkMin(+e.target.value)} min={1} max={120} />
-              <span style={{ fontSize: 12, color: "#888" }}>min</span>
+              <span style={{ fontSize: 12, color: "var(--text-dim)" }}>min</span>
             </div>
           </div>
           <div style={S.settingsRow}>
@@ -88,7 +88,7 @@ export default function Focus({ D, updatePomodoro }) {
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <input type="number" style={S.settingsInput} value={breakMin}
                 onChange={e => setBreakMin(+e.target.value)} min={1} max={30} />
-              <span style={{ fontSize: 12, color: "#888" }}>min</span>
+              <span style={{ fontSize: 12, color: "var(--text-dim)" }}>min</span>
             </div>
           </div>
           <button style={{ ...S.primaryBtn, width: "100%", marginTop: 12 }} onClick={saveSettings}>Save Settings</button>

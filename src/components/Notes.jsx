@@ -176,7 +176,7 @@ function NoteDetail({ note, subjects, onClose, updateNote, uploadNoteFile, delet
           </div>
         )}
 
-        <div style={{ borderTop: "1px solid #eee", paddingTop: 16 }}>
+        <div style={{ borderTop: "1px solid var(--border-soft)", paddingTop: 16 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
             <h4 style={{ fontFamily: "'DM Serif Display',serif", fontSize: 16, fontWeight: 400 }}>
               Attachments {files.length > 0 && `(${files.length})`}
@@ -193,7 +193,7 @@ function NoteDetail({ note, subjects, onClose, updateNote, uploadNoteFile, delet
               <span style={{ fontSize: 20 }}>{getIcon(f.file_type)}</span>
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 600, fontSize: 13 }}>{f.file_name}</div>
-                <div style={{ fontSize: 11, color: "#999" }}>{(f.file_size / 1024).toFixed(1)} KB</div>
+                <div style={{ fontSize: 11, color: "var(--text-faint)" }}>{(f.file_size / 1024).toFixed(1)} KB</div>
               </div>
               {(f.file_type?.includes('pdf') || f.file_type?.includes('image')) && (
                 <button style={{ ...S.ghostBtn, padding: "4px 10px", fontSize: 12 }} onClick={() => handlePreview(f)}>Preview</button>

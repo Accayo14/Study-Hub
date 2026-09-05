@@ -46,4 +46,4 @@ export default function ChangePassword({ submitLabel = 'Update password', onDone
   );
 }
 
-const errorStyle = { color: '#c1121f', fontSize: 13, margin: 0, padding: '6px 10px', background: '#fef2f2', borderRadius: 6 };
+const errorStyle = { color: 'var(--danger)', fontSize: 13, margin: 0, padding: '6px 10px', background: 'var(--danger-bg)', borderRadius: 6 };

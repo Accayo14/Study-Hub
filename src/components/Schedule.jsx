@@ -7,8 +7,8 @@ import { S } from '../styles';
 // from this, so a two hour event is exactly twice as tall as a one hour one.
 const HOUR_H = 60;
 
-const EVENT_COLORS = { class: "#457b9d", quiz: "#c1121f", exam: "#c1121f", lab: "#6b9080", tutorial: "#d4a35a", other: "#8d99ae" };
-const eventColor = (type) => EVENT_COLORS[type] || "#d4a35a";
+const EVENT_COLORS = { class: "var(--blue)", quiz: "var(--danger)", exam: "var(--danger)", lab: "var(--green)", tutorial: "var(--gold)", other: "var(--slate)" };
+const eventColor = (type) => EVENT_COLORS[type] || "var(--gold)";
 
 const endMinutes = (e) => (e.startHour * 60 + (e.startMin || 0)) + (e.duration || 60);
 
@@ -186,7 +186,7 @@ function DailyView({ events, deleteEvent, onEdit, use24h }) {
                 <div style={{ ...S.blockMeta, marginTop: 4 }}>
                   {ev.subject && <span style={S.tagSmall}>{ev.subject}</span>}
                   <span style={S.tagSmall}>{ev.eventType}</span>
-                  {ev.recurring && <span style={{ fontSize: 10, color: "#aaa" }}>· weekly</span>}
+                  {ev.recurring && <span style={{ fontSize: 10, color: "var(--text-ghost)" }}>· weekly</span>}
                 </div>
               )}
               {height >= 26 && (
@@ -214,8 +214,8 @@ function WeeklyView({ refDate, getEventsForDay, onEdit, use24h }) {
         const evs = getEventsForDay(d);
         const isToday = isSameDay(d, new Date());
         return (
-          <div key={i} style={{ ...S.weekCol, ...(isToday ? { background: "#fdf8f0" } : {}) }}>
-            <div style={{ ...S.weekDayHead, ...(isToday ? { color: "#c1121f", fontWeight: 700 } : {}) }}>
+          <div key={i} style={{ ...S.weekCol, ...(isToday ? { background: "var(--today-bg)" } : {}) }}>
+            <div style={{ ...S.weekDayHead, ...(isToday ? { color: "var(--danger)", fontWeight: 700 } : {}) }}>
               <div style={{ fontSize: 11 }}>{DAYS[i]}</div>
               <div style={{ fontSize: 18, fontWeight: 600 }}>{d.getDate()}</div>
             </div>
@@ -223,7 +223,7 @@ function WeeklyView({ refDate, getEventsForDay, onEdit, use24h }) {
               {evs.map(e => (
                 <div key={e.id} style={{ ...S.weekEvent, borderLeft: `3px solid ${eventColor(e.eventType)}`, cursor: "pointer" }}
                   onClick={() => onEdit(e)}>
-                  <div style={{ fontSize: 10, color: "#999" }}>{fmtH(e.startHour, e.startMin, use24h)}</div>
+                  <div style={{ fontSize: 10, color: "var(--text-faint)" }}>{fmtH(e.startHour, e.startMin, use24h)}</div>
                   <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.2 }}>{e.name}</div>
                 </div>
               ))}
@@ -253,14 +253,14 @@ function MonthlyView({ refDate, getEventsForDay }) {
           const evs = getEventsForDay(d);
           const isToday = isSameDay(d, new Date());
           return (
-            <div key={i} style={{ ...S.monthCell, ...(isToday ? { background: "#fdf8f0" } : {}) }}>
-              <div style={{ ...S.monthDateNum, ...(isToday ? { color: "#c1121f", fontWeight: 700 } : {}) }}>{d.getDate()}</div>
+            <div key={i} style={{ ...S.monthCell, ...(isToday ? { background: "var(--today-bg)" } : {}) }}>
+              <div style={{ ...S.monthDateNum, ...(isToday ? { color: "var(--danger)", fontWeight: 700 } : {}) }}>{d.getDate()}</div>
               {evs.slice(0, 2).map(e => (
                 <div key={e.id} style={{ ...S.monthDot, background: eventColor(e.eventType) }}>
-                  <span style={{ fontSize: 9, color: "#fff", overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{e.name}</span>
+                  <span style={{ fontSize: 9, color: "var(--surface)", overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{e.name}</span>
                 </div>
               ))}
-              {evs.length > 2 && <div style={{ fontSize: 9, color: "#999" }}>+{evs.length - 2}</div>}
+              {evs.length > 2 && <div style={{ fontSize: 9, color: "var(--text-faint)" }}>+{evs.length - 2}</div>}
             </div>
           );
         })}
@@ -325,7 +325,7 @@ function ScheduleForm({ subjects, editing, onAdd, onSave, onCancel }) {
           <input style={S.input} type="date" value={f.date} onChange={e => set("date", e.target.value)} />
         )}
       </div>
-      {noDays && <p style={{ fontSize: 12, color: "#c1121f", margin: 0 }}>Pick at least one day.</p>}
+      {noDays && <p style={{ fontSize: 12, color: "var(--danger)", margin: 0 }}>Pick at least one day.</p>}
       <div style={S.fRow}>
         <button style={{ ...S.primaryBtn, ...(noDays ? { opacity: 0.5, cursor: "not-allowed" } : {}) }}
           onClick={handleSubmit} disabled={noDays}>

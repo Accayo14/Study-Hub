@@ -3,7 +3,7 @@
 // a personal fork can list its own course codes here instead.
 export const DEFAULT_SUBJECTS = [];
 export const PRIORITIES = ["Low", "Medium", "High", "Urgent"];
-export const P_COLORS = { Low: "#6b9080", Medium: "#d4a35a", High: "#e07a5f", Urgent: "#c1121f" };
+export const P_COLORS = { Low: "var(--green)", Medium: "var(--gold)", High: "var(--warn)", Urgent: "var(--danger)" };
 export const TASK_CATEGORIES = ["Club / Society", "Sports", "Personal", "Freelance", "Volunteering", "Other"];
 export const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 export const DAYS_FULL = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];

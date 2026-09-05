@@ -83,7 +83,7 @@ export default function Tasks({ D, form, setForm, addTask, toggleTask, deleteTas
                 <div style={S.cardMeta}>
                   <span style={{ ...S.badge, background: P_COLORS[t.priority] }}>{t.priority}</span>
                   <span style={S.tagSmall}>{t.category}</span>
-                  {di && <span style={{ ...S.dueTxt, color: di.cls === "overdue" ? "#c1121f" : "#888" }}>{di.text}</span>}
+                  {di && <span style={{ ...S.dueTxt, color: di.cls === "overdue" ? "var(--danger)" : "var(--text-dim)" }}>{di.text}</span>}
                 </div>
                 {t.description && <div style={S.cardDesc}>{t.description}</div>}
               </div>
@@ -98,7 +98,7 @@ export default function Tasks({ D, form, setForm, addTask, toggleTask, deleteTas
           <h2 style={S.secTitle}>✓ Done ({done.length})</h2>
           {done.map(t => (
             <div key={t.id} style={{ ...S.card, opacity: 0.45 }}>
-              <button style={{ ...S.checkBtn, color: "#6b9080" }} onClick={() => toggleTask(t.id)}>●</button>
+              <button style={{ ...S.checkBtn, color: "var(--green)" }} onClick={() => toggleTask(t.id)}>●</button>
               <div style={{ flex: 1, textDecoration: "line-through" }}><div style={S.cardName}>{t.name}</div></div>
               <button style={S.xBtn} onClick={() => deleteTask(t.id)}>✕</button>
             </div>

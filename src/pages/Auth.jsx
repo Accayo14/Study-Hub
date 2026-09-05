@@ -114,14 +114,14 @@ export default function Auth() {
 }
 
 const a = {
-  wrapper: { display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100dvh", background: "#faf8f5", fontFamily: "'DM Sans',sans-serif", padding: 20 },
-  card: { background: "#fff", border: "1px solid #e8e0d8", borderRadius: 16, padding: "40px 36px", width: "100%", maxWidth: 400 },
+  wrapper: { display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100dvh", background: "var(--bg)", fontFamily: "'DM Sans',sans-serif", padding: 20 },
+  card: { background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 16, padding: "40px 36px", width: "100%", maxWidth: 400 },
   header: { textAlign: "center", marginBottom: 28 },
-  title: { fontFamily: "'DM Serif Display',serif", fontSize: 28, fontWeight: 400, marginTop: 8, color: "#2b2b2b" },
-  subtitle: { color: "#888", fontSize: 14, marginTop: 4 },
+  title: { fontFamily: "'DM Serif Display',serif", fontSize: 28, fontWeight: 400, marginTop: 8, color: "var(--text)" },
+  subtitle: { color: "var(--text-dim)", fontSize: 14, marginTop: 4 },
   form: { display: "flex", flexDirection: "column", gap: 12 },
-  error: { color: "#c1121f", fontSize: 13, margin: 0, padding: "6px 10px", background: "#fef2f2", borderRadius: 6 },
-  success: { color: "#6b9080", fontSize: 13, margin: 0, padding: "6px 10px", background: "#f0fdf4", borderRadius: 6 },
-  toggle: { textAlign: "center", marginTop: 14, fontSize: 13, color: "#888" },
-  link: { background: "none", border: "none", color: "#2b2b2b", fontWeight: 700, cursor: "pointer", fontSize: 13, textDecoration: "underline" },
+  error: { color: "var(--danger)", fontSize: 13, margin: 0, padding: "6px 10px", background: "var(--danger-bg)", borderRadius: 6 },
+  success: { color: "var(--green)", fontSize: 13, margin: 0, padding: "6px 10px", background: "var(--green-bg)", borderRadius: 6 },
+  toggle: { textAlign: "center", marginTop: 14, fontSize: 13, color: "var(--text-dim)" },
+  link: { background: "none", border: "none", color: "var(--text)", fontWeight: 700, cursor: "pointer", fontSize: 13, textDecoration: "underline" },
 };

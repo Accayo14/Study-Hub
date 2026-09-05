@@ -108,13 +108,13 @@ export default function Exams({ D, form, setForm, addExam, toggleExam, deleteExa
                   <div style={S.cardName}>{e.name}</div>
                   <div style={S.cardMeta}>
                     <span style={S.tagSmall}>{e.subject}</span>
-                    <span style={{ ...S.dueTxt, color: di.cls === "overdue" ? "#c1121f" : di.cls === "today" ? "#e07a5f" : "#888" }}>{di.text}</span>
-                    {e.time && <span style={{ fontSize: 11, color: "#888" }}>at {fmtTime(e.time)}{endTime ? ` \u2013 ${endTime}` : ""}</span>}
-                    {e.duration && <span style={{ fontSize: 10, color: "#aaa" }}>({e.duration} min)</span>}
+                    <span style={{ ...S.dueTxt, color: di.cls === "overdue" ? "var(--danger)" : di.cls === "today" ? "var(--warn)" : "var(--text-dim)" }}>{di.text}</span>
+                    {e.time && <span style={{ fontSize: 11, color: "var(--text-dim)" }}>at {fmtTime(e.time)}{endTime ? ` \u2013 ${endTime}` : ""}</span>}
+                    {e.duration && <span style={{ fontSize: 10, color: "var(--text-ghost)" }}>({e.duration} min)</span>}
                   </div>
                 </div>
                 <button style={S.editBtn} onClick={ev => { ev.stopPropagation(); setEditing(e); setForm(null); }} title="Edit">✎</button>
-                <span style={{ fontSize: 12, color: "#aaa" }}>{open ? "▲" : "▼"}</span>
+                <span style={{ fontSize: 12, color: "var(--text-ghost)" }}>{open ? "▲" : "▼"}</span>
                 <button style={S.xBtn} onClick={ev => { ev.stopPropagation(); handleDelete(e); }}>✕</button>
               </div>
               {open && (
@@ -136,7 +136,7 @@ export default function Exams({ D, form, setForm, addExam, toggleExam, deleteExa
           <h2 style={S.secTitle}>✓ Done ({past.length})</h2>
           {past.map(e => (
             <div key={e.id} style={{ ...S.card, opacity: 0.45 }}>
-              <button style={{ ...S.checkBtn, color: "#6b9080" }} onClick={() => toggleExam(e.id)}>●</button>
+              <button style={{ ...S.checkBtn, color: "var(--green)" }} onClick={() => toggleExam(e.id)}>●</button>
               <div style={{ flex: 1, textDecoration: "line-through" }}><div style={S.cardName}>{e.name}</div></div>
               <button style={S.xBtn} onClick={() => handleDelete(e)}>✕</button>
             </div>
@@ -182,32 +182,32 @@ function ExamForm({ subjects, editing, onAdd, onSave, onCancel }) {
       </div>
       <div style={S.fRow}>
         <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1 }}>
-          <label style={{ fontSize: 11, color: "#888", fontWeight: 600 }}>Start Time</label>
+          <label style={{ fontSize: 11, color: "var(--text-dim)", fontWeight: 600 }}>Start Time</label>
           <input style={S.input} type="time" value={f.time} onChange={e => set("time", e.target.value)} />
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          <label style={{ fontSize: 11, color: "#888", fontWeight: 600 }}>End by</label>
-          <div style={{ display: "flex", gap: 0, border: "1px solid #e0d8d0", borderRadius: 7, overflow: "hidden" }}>
+          <label style={{ fontSize: 11, color: "var(--text-dim)", fontWeight: 600 }}>End by</label>
+          <div style={{ display: "flex", gap: 0, border: "1px solid var(--border-2)", borderRadius: 7, overflow: "hidden" }}>
             <button onClick={() => set("durationMode", "duration")}
-              style={{ padding: "6px 10px", border: "none", fontSize: 11, fontWeight: 600, cursor: "pointer", background: f.durationMode === "duration" ? "#2b2b2b" : "#fff", color: f.durationMode === "duration" ? "#faf8f5" : "#888" }}>
+              style={{ padding: "6px 10px", border: "none", fontSize: 11, fontWeight: 600, cursor: "pointer", background: f.durationMode === "duration" ? "var(--text)" : "var(--surface)", color: f.durationMode === "duration" ? "var(--bg)" : "var(--text-dim)" }}>
               Duration
             </button>
             <button onClick={() => set("durationMode", "endtime")}
-              style={{ padding: "6px 10px", border: "none", fontSize: 11, fontWeight: 600, cursor: "pointer", background: f.durationMode === "endtime" ? "#2b2b2b" : "#fff", color: f.durationMode === "endtime" ? "#faf8f5" : "#888" }}>
+              style={{ padding: "6px 10px", border: "none", fontSize: 11, fontWeight: 600, cursor: "pointer", background: f.durationMode === "endtime" ? "var(--text)" : "var(--surface)", color: f.durationMode === "endtime" ? "var(--bg)" : "var(--text-dim)" }}>
               End Time
             </button>
           </div>
         </div>
         {f.durationMode === "duration" ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            <label style={{ fontSize: 11, color: "#888", fontWeight: 600 }}>Minutes</label>
+            <label style={{ fontSize: 11, color: "var(--text-dim)", fontWeight: 600 }}>Minutes</label>
             <select style={S.select} value={f.duration} onChange={e => set("duration", +e.target.value)}>
               {[30, 45, 60, 90, 120, 150, 180, 210, 240].map(d => <option key={d} value={d}>{d} min</option>)}
             </select>
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1 }}>
-            <label style={{ fontSize: 11, color: "#888", fontWeight: 600 }}>End Time</label>
+            <label style={{ fontSize: 11, color: "var(--text-dim)", fontWeight: 600 }}>End Time</label>
             <input style={S.input} type="time" value={f.endTime} onChange={e => set("endTime", e.target.value)} />
           </div>
         )}

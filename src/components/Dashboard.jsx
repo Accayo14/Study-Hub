@@ -31,10 +31,10 @@ export default function Dashboard({ D, setTab, use24h }) {
       </div>
 
       <div style={S.dashGrid} data-sh="dash-grid">
-        <Stat label="Pending" val={pending.length} color="#e07a5f" onClick={() => setTab("assignments")} />
-        <Stat label="Due Soon" val={dueSoon.length} color="#c1121f" onClick={() => setTab("assignments")} />
-        <Stat label="Upcoming Exams" val={upcomingExams.length} color="#5e60ce" onClick={() => setTab("exams")} />
-        <Stat label="Open Tasks" val={openTasks.length} color="#457b9d" onClick={() => setTab("tasks")} />
+        <Stat label="Pending" val={pending.length} color="var(--warn)" onClick={() => setTab("assignments")} />
+        <Stat label="Due Soon" val={dueSoon.length} color="var(--danger)" onClick={() => setTab("assignments")} />
+        <Stat label="Upcoming Exams" val={upcomingExams.length} color="var(--violet)" onClick={() => setTab("exams")} />
+        <Stat label="Open Tasks" val={openTasks.length} color="var(--blue)" onClick={() => setTab("tasks")} />
       </div>
 
       {/* Two-column layout */}
@@ -73,7 +73,7 @@ export default function Dashboard({ D, setTab, use24h }) {
                       <span style={S.tagSmall}>{t.category}</span>
                     </div>
                   </div>
-                  {di && <span style={{ ...S.dueTxt, color: di.cls === "overdue" ? "#c1121f" : "#888" }}>{di.text}</span>}
+                  {di && <span style={{ ...S.dueTxt, color: di.cls === "overdue" ? "var(--danger)" : "var(--text-dim)" }}>{di.text}</span>}
                 </div>
               );
             })}
@@ -97,7 +97,7 @@ export default function Dashboard({ D, setTab, use24h }) {
             ))}
           </div>
 
-          <div style={{ ...S.dashSection, borderLeft: "3px solid #5e60ce" }}>
+          <div style={{ ...S.dashSection, borderLeft: "3px solid var(--violet)" }}>
             <h2 style={S.secTitle}>📖 Study Plan</h2>
             {pendingPlans.length === 0 && <p style={{ ...S.empty, padding: "16px 0" }}>No study plans.</p>}
             {pendingPlans.slice(0, 5).map(a => {
@@ -107,10 +107,10 @@ export default function Dashboard({ D, setTab, use24h }) {
                   <div style={{ flex: 1 }}>
                     <div style={S.miniAssignName}>{a.name}</div>
                     <div style={S.miniAssignMeta}>
-                      <span style={{ ...S.tagSmall, background: "#e8e0f8", color: "#5e60ce" }}>{a.subject}</span>
+                      <span style={{ ...S.tagSmall, background: "var(--violet-bg)", color: "var(--violet)" }}>{a.subject}</span>
                     </div>
                   </div>
-                  <span style={{ ...S.dueTxt, color: di.cls === "overdue" ? "#c1121f" : di.cls === "today" ? "#e07a5f" : "#888" }}>{di.text}</span>
+                  <span style={{ ...S.dueTxt, color: di.cls === "overdue" ? "var(--danger)" : di.cls === "today" ? "var(--warn)" : "var(--text-dim)" }}>{di.text}</span>
                 </div>
               );
             })}
@@ -148,7 +148,7 @@ function MiniAssignCard({ a }) {
           <span style={S.tagSmall}>{a.subject}</span>
         </div>
       </div>
-      <span style={{ ...S.dueTxt, color: di.cls === "overdue" ? "#c1121f" : di.cls === "today" ? "#e07a5f" : "#888" }}>{di.text}</span>
+      <span style={{ ...S.dueTxt, color: di.cls === "overdue" ? "var(--danger)" : di.cls === "today" ? "var(--warn)" : "var(--text-dim)" }}>{di.text}</span>
     </div>
   );
 }

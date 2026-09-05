@@ -40,8 +40,8 @@ export default function Assignments({ D, form, setForm, addSubject, removeSubjec
                 <div style={S.cardMeta}>
                   <span style={{ ...S.badge, background: P_COLORS[a.priority] }}>{a.priority}</span>
                   <span style={S.tagSmall}>{a.subject}</span>
-                  <span style={{ ...S.dueTxt, color: di.cls === "overdue" ? "#c1121f" : di.cls === "today" ? "#e07a5f" : "#888" }}>{di.text}</span>
-                  {a.time && <span style={{ fontSize: 11, color: "#888" }}>at {a.time}</span>}
+                  <span style={{ ...S.dueTxt, color: di.cls === "overdue" ? "var(--danger)" : di.cls === "today" ? "var(--warn)" : "var(--text-dim)" }}>{di.text}</span>
+                  {a.time && <span style={{ fontSize: 11, color: "var(--text-dim)" }}>at {a.time}</span>}
                 </div>
                 {a.description && <div style={S.cardDesc}>{a.description}</div>}
               </div>
@@ -59,7 +59,7 @@ export default function Assignments({ D, form, setForm, addSubject, removeSubjec
           </div>
           {done.map(a => (
             <div key={a.id} style={{ ...S.card, opacity: 0.45 }}>
-              <button style={{ ...S.checkBtn, color: "#6b9080" }} onClick={() => toggleAssignment(a.id)}>●</button>
+              <button style={{ ...S.checkBtn, color: "var(--green)" }} onClick={() => toggleAssignment(a.id)}>●</button>
               <div style={{ flex: 1, textDecoration: "line-through" }}><div style={S.cardName}>{a.name}</div></div>
               <button style={S.xBtn} onClick={() => deleteAssignment(a.id)}>✕</button>
             </div>

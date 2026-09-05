@@ -26,11 +26,11 @@ export default function ResetPassword() {
 }
 
 const r = {
-  wrapper: { display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100dvh", background: "#faf8f5", fontFamily: "'DM Sans',sans-serif", padding: 20 },
-  card: { background: "#fff", border: "1px solid #e8e0d8", borderRadius: 16, padding: "36px 32px", width: "100%", maxWidth: 400 },
+  wrapper: { display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100dvh", background: "var(--bg)", fontFamily: "'DM Sans',sans-serif", padding: 20 },
+  card: { background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 16, padding: "36px 32px", width: "100%", maxWidth: 400 },
   header: { marginBottom: 22 },
-  title: { fontFamily: "'DM Serif Display',serif", fontSize: 24, fontWeight: 400, color: "#2b2b2b" },
-  subtitle: { color: "#888", fontSize: 13.5, marginTop: 8, lineHeight: 1.5 },
+  title: { fontFamily: "'DM Serif Display',serif", fontSize: 24, fontWeight: 400, color: "var(--text)" },
+  subtitle: { color: "var(--text-dim)", fontSize: 13.5, marginTop: 8, lineHeight: 1.5 },
   footer: { textAlign: "center", marginTop: 18, fontSize: 13 },
-  link: { background: "none", border: "none", color: "#888", cursor: "pointer", fontSize: 13, textDecoration: "underline" },
+  link: { background: "none", border: "none", color: "var(--text-dim)", cursor: "pointer", fontSize: 13, textDecoration: "underline" },
 };

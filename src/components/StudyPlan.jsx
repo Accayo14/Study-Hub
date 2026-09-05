@@ -28,7 +28,7 @@ export default function StudyPlan({ D, form, setForm, addAssignment, toggleAssig
       {showMgr && <SubjectManager subjects={D.subjects} addSubject={addSubject} removeSubject={removeSubject} onClose={() => setShowMgr(false)} />}
       <div style={S.pageHead}>
         <h1 style={S.pageTitle}>Study Plan</h1>
-        <button style={{ ...S.primaryBtn, background: "#5e60ce" }} onClick={() => { setForm(form === "studyplan" ? null : "studyplan"); setEditing(null); }}>
+        <button style={{ ...S.primaryBtn, background: "var(--violet)" }} onClick={() => { setForm(form === "studyplan" ? null : "studyplan"); setEditing(null); }}>
           {form === "studyplan" && !editing ? "✕ Cancel" : "+ Add"}
         </button>
       </div>
@@ -50,17 +50,17 @@ export default function StudyPlan({ D, form, setForm, addAssignment, toggleAssig
         return (
           <div key={date} style={{ marginBottom: 18 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: di.cls === "overdue" ? "#c1121f" : di.cls === "today" ? "#e07a5f" : "#555" }}>{dateLabel}</div>
-              {di.cls === "overdue" && <span style={{ fontSize: 10, color: "#c1121f", fontWeight: 600 }}>OVERDUE</span>}
+              <div style={{ fontSize: 13, fontWeight: 700, color: di.cls === "overdue" ? "var(--danger)" : di.cls === "today" ? "var(--warn)" : "var(--text-2)" }}>{dateLabel}</div>
+              {di.cls === "overdue" && <span style={{ fontSize: 10, color: "var(--danger)", fontWeight: 600 }}>OVERDUE</span>}
             </div>
             <div style={S.list}>
               {grouped[date].map(a => (
-                <div key={a.id} style={{ ...S.card, borderLeft: "3px solid #5e60ce" }}>
+                <div key={a.id} style={{ ...S.card, borderLeft: "3px solid var(--violet)" }}>
                   <button style={S.checkBtn} onClick={() => toggleAssignment(a.id)}>○</button>
                   <div style={{ flex: 1 }}>
                     <div style={S.cardName}>{a.name}</div>
                     <div style={S.cardMeta}>
-                      <span style={{ ...S.tagSmall, background: "#e8e0f8", color: "#5e60ce" }}>{a.subject}</span>
+                      <span style={{ ...S.tagSmall, background: "var(--violet-bg)", color: "var(--violet)" }}>{a.subject}</span>
                     </div>
                     {a.description && <div style={S.cardDesc}>{a.description}</div>}
                   </div>
@@ -78,7 +78,7 @@ export default function StudyPlan({ D, form, setForm, addAssignment, toggleAssig
           <h2 style={S.secTitle}>✓ Completed ({done.length})</h2>
           {done.map(a => (
             <div key={a.id} style={{ ...S.card, opacity: 0.45 }}>
-              <button style={{ ...S.checkBtn, color: "#6b9080" }} onClick={() => toggleAssignment(a.id)}>●</button>
+              <button style={{ ...S.checkBtn, color: "var(--green)" }} onClick={() => toggleAssignment(a.id)}>●</button>
               <div style={{ flex: 1, textDecoration: "line-through" }}><div style={S.cardName}>{a.name}</div></div>
               <button style={S.xBtn} onClick={() => deleteAssignment(a.id)}>✕</button>
             </div>
@@ -104,7 +104,7 @@ function StudyPlanForm({ subjects, editing, onAdd, onSave, onCancel }) {
   };
 
   return (
-    <div style={{ ...S.formCard, borderLeft: "3px solid #5e60ce" }}>
+    <div style={{ ...S.formCard, borderLeft: "3px solid var(--violet)" }}>
       <input style={S.input} placeholder="Topic to study (e.g., Integration by Parts)..." value={f.name} onChange={e => set("name", e.target.value)} autoFocus />
       <div style={S.fRow}>
         <SubjectSelect subjects={subjects} value={f.subject} onChange={v => set("subject", v)} />
@@ -112,7 +112,7 @@ function StudyPlanForm({ subjects, editing, onAdd, onSave, onCancel }) {
       </div>
       <textarea style={{ ...S.input, minHeight: 40 }} placeholder="Notes (optional)..." value={f.description} onChange={e => set("description", e.target.value)} />
       <div style={S.fRow}>
-        <button style={{ ...S.primaryBtn, background: "#5e60ce" }} onClick={handleSubmit}>{editing ? "Save Changes" : "Add to Plan"}</button>
+        <button style={{ ...S.primaryBtn, background: "var(--violet)" }} onClick={handleSubmit}>{editing ? "Save Changes" : "Add to Plan"}</button>
         {editing && <button style={S.ghostBtn} onClick={onCancel}>Cancel</button>}
       </div>
     </div>

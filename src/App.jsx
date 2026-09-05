@@ -38,9 +38,9 @@ function SidebarClock({ use24h }) {
     : now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", second: "2-digit", hour12: true });
   const dateStr = now.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
   return (
-    <div style={{ textAlign: "center", padding: "6px 0 12px", borderBottom: "1px solid #3d3d3d", marginBottom: 12 }} data-sh="sidebar-clock">
-      <div style={{ fontSize: 18, fontWeight: 600, color: "#faf8f5", fontFamily: "'DM Serif Display',serif", letterSpacing: "0.5px" }}>{timeStr}</div>
-      <div style={{ fontSize: 11, color: "#a8a8a8", marginTop: 2 }}>{dateStr}</div>
+    <div style={{ textAlign: "center", padding: "6px 0 12px", borderBottom: "1px solid var(--side-line)", marginBottom: 12 }} data-sh="sidebar-clock">
+      <div style={{ fontSize: 18, fontWeight: 600, color: "var(--side-fg)", fontFamily: "'DM Serif Display',serif", letterSpacing: "0.5px" }}>{timeStr}</div>
+      <div style={{ fontSize: 11, color: "var(--side-dim)", marginTop: 2 }}>{dateStr}</div>
     </div>
   );
 }
@@ -54,7 +54,7 @@ function AccountSheet({ user, D, use24h, toggle24h, signOut, onClose }) {
         <div style={S.modalHead}>
           <div>
             <div style={S.modalTitle}>Account</div>
-            <div style={{ fontSize: 12, color: "#888", marginTop: 4, wordBreak: "break-all" }}>
+            <div style={{ fontSize: 12, color: "var(--text-dim)", marginTop: 4, wordBreak: "break-all" }}>
               {user.user_metadata?.full_name || user.email}
             </div>
           </div>
@@ -140,7 +140,7 @@ function Main() {
           <div style={{ display: "flex", alignItems: "center", justifyContent: sidebarOpen ? "space-between" : "center", marginBottom: sidebarOpen ? 8 : 12, padding: sidebarOpen ? "0" : "0" }} data-sh="logo">
             {sidebarOpen && <span style={S.logoText} data-sh="logo-text">StudyHub</span>}
             <button onClick={() => setSidebarOpen(!sidebarOpen)}
-              style={{ background: "none", border: "none", color: "#a8a8a8", fontSize: 16, cursor: "pointer", padding: "9px 10px", borderRadius: 7, lineHeight: 1, width: sidebarOpen ? "auto" : "100%", textAlign: "center" }}
+              style={{ background: "none", border: "none", color: "var(--side-dim)", fontSize: 16, cursor: "pointer", padding: "9px 10px", borderRadius: 7, lineHeight: 1, width: sidebarOpen ? "auto" : "100%", textAlign: "center" }}
               data-sh="hamburger" title={sidebarOpen ? "Collapse" : "Expand"}>
               ☰
             </button>
@@ -148,10 +148,10 @@ function Main() {
           {sidebarOpen && <SidebarClock use24h={use24h} />}
           {sidebarOpen && (
             <button onClick={() => setShowSearch(true)}
-              style={{ ...S.navBtn, color: "#888", marginBottom: 8, border: "1px solid #3d3d3d", borderRadius: 7, fontSize: 12, justifyContent: "space-between" }}
+              style={{ ...S.navBtn, color: "var(--text-dim)", marginBottom: 8, border: "1px solid var(--side-line)", borderRadius: 7, fontSize: 12, justifyContent: "space-between" }}
               data-sh="search-btn">
               <span>🔍 Search...</span>
-              <span style={{ fontSize: 10, color: "#666", background: "#3d3d3d", padding: "1px 6px", borderRadius: 4 }}>Ctrl+K</span>
+              <span style={{ fontSize: 10, color: "var(--text-3)", background: "var(--side-line)", padding: "1px 6px", borderRadius: 4 }}>Ctrl+K</span>
             </button>
           )}
           {TABS.map(t => (
@@ -173,18 +173,18 @@ function Main() {
         </div>
         {sidebarOpen && (
           <div style={S.sidebarBottom} data-sh="sidebar-bottom">
-            <div style={{ fontSize: 11, color: "#a8a8a8", marginBottom: 6, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            <div style={{ fontSize: 11, color: "var(--side-dim)", marginBottom: 6, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {user.user_metadata?.full_name || user.email}
             </div>
             <div style={S.miniStat}>{D.assignments.filter(a => !a.done).length} pending</div>
             <div style={S.miniStat}>{D.exams.filter(e => !e.done).length} exams left</div>
-            <button style={{ ...S.ghostBtn, marginTop: 8, width: "100%", fontSize: 10, color: "#a8a8a8", borderColor: "#3d3d3d", padding: "5px 10px" }} onClick={toggle24h}>
+            <button style={{ ...S.ghostBtn, marginTop: 8, width: "100%", fontSize: 10, color: "var(--side-dim)", borderColor: "var(--side-line)", padding: "5px 10px" }} onClick={toggle24h}>
               {use24h ? "Switch to 12hr" : "Switch to 24hr"}
             </button>
-            <button style={{ ...S.ghostBtn, marginTop: 6, width: "100%", fontSize: 10, color: "#a8a8a8", borderColor: "#3d3d3d", padding: "5px 10px" }} onClick={() => setShowAccount(true)}>
+            <button style={{ ...S.ghostBtn, marginTop: 6, width: "100%", fontSize: 10, color: "var(--side-dim)", borderColor: "var(--side-line)", padding: "5px 10px" }} onClick={() => setShowAccount(true)}>
               Account &amp; password
             </button>
-            <button style={{ ...S.ghostBtn, marginTop: 6, width: "100%", fontSize: 11, color: "#a8a8a8", borderColor: "#3d3d3d" }} onClick={signOut}>Sign Out</button>
+            <button style={{ ...S.ghostBtn, marginTop: 6, width: "100%", fontSize: 11, color: "var(--side-dim)", borderColor: "var(--side-line)" }} onClick={signOut}>Sign Out</button>
           </div>
         )}
       </nav>

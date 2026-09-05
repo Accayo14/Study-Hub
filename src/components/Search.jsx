@@ -49,7 +49,7 @@ export default function Search({ D, onClose, onNavigate }) {
             <div style={S.searchGroupTitle}>{group.icon} {group.label}</div>
             {group.items.map(item => (
               <div key={item.id} style={S.searchItem}
-                onMouseEnter={e => { e.currentTarget.style.background = '#f0ece6'; }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--tag-bg)'; }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                 onClick={() => { onNavigate(group.type); onClose(); }}>
                 <span style={{ fontWeight: 600 }}>{item.name || item.title}</span>
