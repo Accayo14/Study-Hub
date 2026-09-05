@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { SubjectManager, SubjectSelect, SubjectFilter } from './SubjectManager';
 import { S } from '../styles';
 
@@ -31,6 +31,7 @@ export default function Notes({ D, form, setForm, addSubject, removeSubject, add
       {showMgr && <SubjectManager subjects={D.subjects} addSubject={addSubject} removeSubject={removeSubject} onClose={() => setShowMgr(false)} />}
       {openNote && (
         <NoteDetail
+          key={openNote}
           note={D.notes.find(n => n.id === openNote)}
           subjects={D.subjects}
           onClose={() => setOpenNote(null)}
@@ -87,22 +88,15 @@ function NoteForm({ subjects, onAdd }) {
 
 function NoteDetail({ note, subjects, onClose, updateNote, uploadNoteFile, deleteNoteFile, getFileUrl }) {
   const [uploading, setUploading] = useState(false);
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [subject, setSubject] = useState('');
+  // The call site keys this component by note id, so opening a different note
+  // remounts it and these initialisers run again with that note's values. That
+  // replaces an effect that copied the props into state on every id change.
+  const [title, setTitle] = useState(note?.title ?? '');
+  const [content, setContent] = useState(note?.content ?? '');
+  const [subject, setSubject] = useState(note?.subject ?? '');
   const [previewUrl, setPreviewUrl] = useState(null);
   const [previewType, setPreviewType] = useState(null);
   const inputRef = useRef(null);
-
-  useEffect(() => {
-    if (note) {
-      setTitle(note.title);
-      setContent(note.content || '');
-      setSubject(note.subject || '');
-      setPreviewUrl(null);
-      setPreviewType(null);
-    }
-  }, [note?.id]);
 
   if (!note) return null;
 

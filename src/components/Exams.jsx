@@ -148,10 +148,11 @@ export default function Exams({ D, form, setForm, addExam, toggleExam, deleteExa
 }
 
 function ExamForm({ subjects, editing, onAdd, onSave, onCancel }) {
-  const initial = editing
+  // Lazy initialiser: the default exam date reads the clock, which must not run
+  // on every render.
+  const [f, setF] = useState(() => editing
     ? { name: editing.name, subject: editing.subject, date: editing.date, time: editing.time || '', duration: editing.duration || '', durationMode: editing.duration ? 'duration' : 'endtime', endTime: '', venue: editing.venue || '', syllabus: editing.syllabus || '', notes: editing.notes || '' }
-    : { name: "", subject: subjects[0] || "", date: toISO(new Date(Date.now() + 14 * 864e5)), time: "09:00", duration: 120, durationMode: "duration", endTime: "", venue: "", syllabus: "", notes: "" };
-  const [f, setF] = useState(initial);
+    : { name: "", subject: subjects[0] || "", date: toISO(new Date(Date.now() + 14 * 864e5)), time: "09:00", duration: 120, durationMode: "duration", endTime: "", venue: "", syllabus: "", notes: "" });
   const set = (k, v) => setF(p => ({ ...p, [k]: v }));
 
   // Calculate duration from end time

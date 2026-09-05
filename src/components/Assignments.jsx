@@ -71,10 +71,11 @@ export default function Assignments({ D, form, setForm, addSubject, removeSubjec
 }
 
 function AssignmentForm({ subjects, editing, onAdd, onSave, onCancel }) {
-  const initial = editing
+  // Lazy initialiser: the default due date reads the clock, which must not run
+  // on every render.
+  const [f, setF] = useState(() => editing
     ? { name: editing.name, subject: editing.subject, priority: editing.priority, due: editing.due, time: editing.time || '', description: editing.description || '' }
-    : { name: "", subject: subjects[0] || "", priority: "Medium", due: toISO(new Date(Date.now() + 7 * 864e5)), time: "", description: "" };
-  const [f, setF] = useState(initial);
+    : { name: "", subject: subjects[0] || "", priority: "Medium", due: toISO(new Date(Date.now() + 7 * 864e5)), time: "", description: "" });
   const set = (k, v) => setF(p => ({ ...p, [k]: v }));
 
   const handleSubmit = () => {

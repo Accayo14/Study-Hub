@@ -6,71 +6,74 @@ export function useStudyData(userId) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Declared inside the effect so it cannot be referenced before it exists and
+  // does not need to be a dependency of itself.
   useEffect(() => {
     if (!userId) return;
+
+    const loadAllData = async () => {
+      try {
+        const [
+          { data: subjects },
+          { data: assignments },
+          { data: notes },
+          { data: scheduleEvents },
+          { data: exams },
+          { data: tasks },
+        ] = await Promise.all([
+          supabase.from('subjects').select('*').eq('user_id', userId).order('created_at'),
+          supabase.from('assignments').select('*').eq('user_id', userId).order('created_at'),
+          supabase.from('notes').select('*, note_files(*)').eq('user_id', userId).order('created_at', { ascending: false }),
+          supabase.from('schedule_events').select('*').eq('user_id', userId).order('created_at'),
+          supabase.from('exams').select('*').eq('user_id', userId).order('created_at'),
+          supabase.from('tasks').select('*').eq('user_id', userId).order('created_at'),
+        ]);
+
+        let subjectNames;
+        if (!subjects || subjects.length === 0) {
+          const defaults = DEFAULT_SUBJECTS.map(name => ({ user_id: userId, name }));
+          await supabase.from('subjects').insert(defaults);
+          subjectNames = [...DEFAULT_SUBJECTS];
+        } else {
+          subjectNames = subjects.map(s => s.name);
+        }
+
+        setData({
+          subjects: subjectNames,
+          assignments: assignments || [],
+          notes: (notes || []).map(n => ({
+            ...n,
+            fileCount: n.note_files?.length || 0,
+            ts: new Date(n.created_at).getTime(),
+          })),
+          scheduleEvents: (scheduleEvents || []).map(e => ({
+            ...e,
+            startHour: e.start_hour,
+            startMin: e.start_min,
+            eventType: e.event_type,
+            dayOfWeek: e.day_of_week,
+          })),
+          exams: exams || [],
+          tasks: tasks || [],
+          pomodoro: { work: 25, break: 5 },
+        });
+      } catch (err) {
+        console.error('Failed to load data:', err);
+        setData({
+          subjects: [...DEFAULT_SUBJECTS],
+          assignments: [],
+          notes: [],
+          scheduleEvents: [],
+          exams: [],
+          tasks: [],
+          pomodoro: { work: 25, break: 5 },
+        });
+      }
+      setLoading(false);
+    };
+
     loadAllData();
   }, [userId]);
-
-  const loadAllData = async () => {
-    try {
-      const [
-        { data: subjects },
-        { data: assignments },
-        { data: notes },
-        { data: scheduleEvents },
-        { data: exams },
-        { data: tasks },
-      ] = await Promise.all([
-        supabase.from('subjects').select('*').eq('user_id', userId).order('created_at'),
-        supabase.from('assignments').select('*').eq('user_id', userId).order('created_at'),
-        supabase.from('notes').select('*, note_files(*)').eq('user_id', userId).order('created_at', { ascending: false }),
-        supabase.from('schedule_events').select('*').eq('user_id', userId).order('created_at'),
-        supabase.from('exams').select('*').eq('user_id', userId).order('created_at'),
-        supabase.from('tasks').select('*').eq('user_id', userId).order('created_at'),
-      ]);
-
-      let subjectNames;
-      if (!subjects || subjects.length === 0) {
-        const defaults = DEFAULT_SUBJECTS.map(name => ({ user_id: userId, name }));
-        await supabase.from('subjects').insert(defaults);
-        subjectNames = [...DEFAULT_SUBJECTS];
-      } else {
-        subjectNames = subjects.map(s => s.name);
-      }
-
-      setData({
-        subjects: subjectNames,
-        assignments: assignments || [],
-        notes: (notes || []).map(n => ({
-          ...n,
-          fileCount: n.note_files?.length || 0,
-          ts: new Date(n.created_at).getTime(),
-        })),
-        scheduleEvents: (scheduleEvents || []).map(e => ({
-          ...e,
-          startHour: e.start_hour,
-          startMin: e.start_min,
-          eventType: e.event_type,
-          dayOfWeek: e.day_of_week,
-        })),
-        exams: exams || [],
-        tasks: tasks || [],
-        pomodoro: { work: 25, break: 5 },
-      });
-    } catch (err) {
-      console.error('Failed to load data:', err);
-      setData({
-        subjects: [...DEFAULT_SUBJECTS],
-        assignments: [],
-        notes: [],
-        scheduleEvents: [],
-        exams: [],
-        tasks: [],
-        pomodoro: { work: 25, break: 5 },
-      });
-    }
-    setLoading(false);
-  };
 
   // ── Subjects ──
   const addSubject = async (name) => {
