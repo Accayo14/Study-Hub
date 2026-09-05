@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { dueInfo, toISO } from '../constants';
-import { SubjectSelect, SubjectFilter } from './SubjectManager';
+import { SubjectManager, SubjectSelect, SubjectFilter } from './SubjectManager';
 import { S } from '../styles';
 
 export default function StudyPlan({ D, form, setForm, addAssignment, toggleAssignment, deleteAssignment, updateAssignment, addSubject, removeSubject }) {
@@ -25,6 +25,7 @@ export default function StudyPlan({ D, form, setForm, addAssignment, toggleAssig
 
   return (
     <div style={S.page}>
+      {showMgr && <SubjectManager subjects={D.subjects} addSubject={addSubject} removeSubject={removeSubject} onClose={() => setShowMgr(false)} />}
       <div style={S.pageHead}>
         <h1 style={S.pageTitle}>Study Plan</h1>
         <button style={{ ...S.primaryBtn, background: "#5e60ce" }} onClick={() => { setForm(form === "studyplan" ? null : "studyplan"); setEditing(null); }}>
@@ -39,7 +40,7 @@ export default function StudyPlan({ D, form, setForm, addAssignment, toggleAssig
           onCancel={() => { setEditing(null); setForm(null); }} />
       )}
 
-      <SubjectFilter subjects={D.subjects} filter={filter} setFilter={setFilter} onManage={() => setShowMgr(false)} />
+      <SubjectFilter subjects={D.subjects} filter={filter} setFilter={setFilter} onManage={() => setShowMgr(true)} />
 
       {dateKeys.length === 0 && <p style={S.empty}>No study plans yet. Plan what topics to study and when!</p>}
 
