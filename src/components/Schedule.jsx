@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { HOURS, DAYS, DAYS_FULL, fmtH, toISO, today, isSameDay } from '../constants';
 import { SubjectSelect } from './SubjectManager';
 import { S } from '../styles';
@@ -9,6 +9,8 @@ const HOUR_H = 60;
 
 const EVENT_COLORS = { class: "var(--blue)", quiz: "var(--danger)", exam: "var(--danger)", lab: "var(--green)", tutorial: "var(--gold)", other: "var(--slate)" };
 const eventColor = (type) => EVENT_COLORS[type] || "var(--gold)";
+// var() cannot take a hex alpha suffix, so the fill is mixed with the page.
+const eventTint = (color, pct) => `color-mix(in srgb, ${color} ${pct}%, transparent)`;
 
 const endMinutes = (e) => (e.startHour * 60 + (e.startMin || 0)) + (e.duration || 60);
 
@@ -141,32 +143,70 @@ export default function Schedule({ D, form, setForm, addEvent, deleteEvent, upda
         </div>
       </div>
 
-      {view === "daily" && <DailyView events={getEventsForDay(refDate)} deleteEvent={deleteEvent} onEdit={handleEdit} use24h={use24h} />}
+      {view === "daily" && <DailyView events={getEventsForDay(refDate)} deleteEvent={deleteEvent} onEdit={handleEdit} use24h={use24h} isToday={isSameDay(refDate, new Date())} />}
       {view === "weekly" && <WeeklyView refDate={refDate} getEventsForDay={getEventsForDay} deleteEvent={deleteEvent} onEdit={handleEdit} use24h={use24h} />}
       {view === "monthly" && <MonthlyView refDate={refDate} getEventsForDay={getEventsForDay} />}
     </div>
   );
 }
 
-function DailyView({ events, deleteEvent, onEdit, use24h }) {
+
+/** Minutes since midnight, re-read once a minute so the now-line creeps down. */
+function useNowMinutes() {
+  const [mins, setMins] = useState(() => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); });
+  useEffect(() => {
+    const id = setInterval(() => { const d = new Date(); setMins(d.getHours() * 60 + d.getMinutes()); }, 60000);
+    return () => clearInterval(id);
+  }, []);
+  return mins;
+}
+
+const gridOffset = (minutes) => ((minutes - HOURS[0] * 60) / 60) * HOUR_H;
+
+function HourLines() {
+  return (
+    <>
+      {HOURS.map((h, i) => (
+        <div key={h}>
+          <div style={{ ...S.dayHourLine, top: i * HOUR_H }} />
+          <div style={{ ...S.dayHalfLine, top: i * HOUR_H + HOUR_H / 2 }} />
+        </div>
+      ))}
+      <div style={{ ...S.dayHourLine, top: HOURS.length * HOUR_H }} />
+    </>
+  );
+}
+
+function NowLine({ minutes, withDot = true }) {
+  if (minutes < HOURS[0] * 60 || minutes > (HOURS[HOURS.length - 1] + 1) * 60) return null;
+  return (
+    <div style={{ ...S.nowLine, top: gridOffset(minutes) }}>
+      {withDot && <div style={S.nowDot} />}
+    </div>
+  );
+}
+
+function HourGutter({ use24h }) {
+  return (
+    <div style={{ ...S.dayGutter, height: HOURS.length * HOUR_H }}>
+      {HOURS.map((h, i) => (
+        <div key={h} style={{ ...S.dayHourLbl, top: i * HOUR_H }}>{fmtH(h, 0, use24h)}</div>
+      ))}
+    </div>
+  );
+}
+
+function DailyView({ events, deleteEvent, onEdit, use24h, isToday }) {
   const total = HOURS.length * HOUR_H;
   const placed = layoutDay(events);
+  const nowMins = useNowMinutes();
 
   return (
     <div style={S.dayWrap}>
-      <div style={{ ...S.dayGutter, height: total }}>
-        {HOURS.map((h, i) => (
-          <div key={h} style={{ ...S.dayHourLbl, top: i * HOUR_H }}>{fmtH(h, 0, use24h)}</div>
-        ))}
-      </div>
+      <HourGutter use24h={use24h} />
       <div style={{ ...S.dayTrack, height: total }}>
-        {HOURS.map((h, i) => (
-          <div key={h}>
-            <div style={{ ...S.dayHourLine, top: i * HOUR_H }} />
-            <div style={{ ...S.dayHalfLine, top: i * HOUR_H + HOUR_H / 2 }} />
-          </div>
-        ))}
-        <div style={{ ...S.dayHourLine, top: total }} />
+        <HourLines />
+        {isToday && <NowLine minutes={nowMins} />}
 
         {events.length === 0 && <div style={S.dayEmpty}>Nothing scheduled.</div>}
 
@@ -179,7 +219,7 @@ function DailyView({ events, deleteEvent, onEdit, use24h }) {
           const showMeta = height >= 58;
           return (
             <div key={ev.id} onClick={() => onEdit(ev)} title={`${ev.name} · ${range}`}
-              style={{ ...S.dayEvent, top, height, left, width, background: `${color}1a`, borderLeft: `3px solid ${color}` }}>
+              style={{ ...S.dayEvent, top, height, left, width, background: eventTint(color, 12), borderLeft: `3px solid ${color}` }}>
               <div style={S.dayEventName}>{ev.name}</div>
               {showTime && <div style={S.dayEventTime}>{range}</div>}
               {showMeta && (
@@ -207,30 +247,51 @@ function WeeklyView({ refDate, getEventsForDay, onEdit, use24h }) {
   const sun = new Date(refDate);
   sun.setDate(sun.getDate() - sun.getDay());
   const days = Array.from({ length: 7 }, (_, i) => { const d = new Date(sun); d.setDate(d.getDate() + i); return d; });
+  const total = HOURS.length * HOUR_H;
+  const nowMins = useNowMinutes();
 
   return (
-    <div style={S.weekGrid} data-sh="week-grid">
-      {days.map((d, i) => {
-        const evs = getEventsForDay(d);
-        const isToday = isSameDay(d, new Date());
-        return (
-          <div key={i} style={{ ...S.weekCol, ...(isToday ? { background: "var(--today-bg)" } : {}) }}>
-            <div style={{ ...S.weekDayHead, ...(isToday ? { color: "var(--danger)", fontWeight: 700 } : {}) }}>
-              <div style={{ fontSize: 11 }}>{DAYS[i]}</div>
-              <div style={{ fontSize: 18, fontWeight: 600 }}>{d.getDate()}</div>
+    <div style={S.weekWrap}>
+      <div style={S.weekHeadRow}>
+        <div style={S.weekHeadSpacer} />
+        {days.map((d, i) => {
+          const isToday = isSameDay(d, new Date());
+          return (
+            <div key={i} style={{ ...S.weekDayHead, ...(isToday ? { background: "var(--today-bg)" } : {}) }}>
+              <div style={{ fontSize: 10, color: "var(--text-dim)", textTransform: "uppercase", letterSpacing: "0.4px" }}>{DAYS[i]}</div>
+              <div style={{ fontSize: 16, fontWeight: 600, color: isToday ? "var(--danger)" : "var(--text)" }}>{d.getDate()}</div>
             </div>
-            <div style={S.weekEvents}>
-              {evs.map(e => (
-                <div key={e.id} style={{ ...S.weekEvent, borderLeft: `3px solid ${eventColor(e.eventType)}`, cursor: "pointer" }}
-                  onClick={() => onEdit(e)}>
-                  <div style={{ fontSize: 10, color: "var(--text-faint)" }}>{fmtH(e.startHour, e.startMin, use24h)}</div>
-                  <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.2 }}>{e.name}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
+
+      <div style={S.weekBody}>
+        <HourGutter use24h={use24h} />
+        <div style={S.weekCols}>
+          {days.map((d, i) => {
+            const isToday = isSameDay(d, new Date());
+            const placed = layoutDay(getEventsForDay(d));
+            return (
+              <div key={i} style={{ ...S.weekColTrack, height: total, ...(isToday ? { background: "var(--today-bg)" } : {}) }}>
+                <HourLines />
+                {isToday && <NowLine minutes={nowMins} withDot={false} />}
+                {placed.map(({ ev, top, height, left, width }) => {
+                  const color = eventColor(ev.eventType);
+                  const end = endMinutes(ev);
+                  const range = `${fmtH(ev.startHour, ev.startMin, use24h)} – ${fmtH(Math.floor(end / 60) % 24, end % 60, use24h)}`;
+                  return (
+                    <div key={ev.id} onClick={() => onEdit(ev)} title={`${ev.name} · ${range}`}
+                      style={{ ...S.weekEvent, top, height, left, width, background: eventTint(color, 16), borderLeft: `2px solid ${color}` }}>
+                      <div style={S.dayEventName}>{ev.name}</div>
+                      {height >= 34 && <div style={{ ...S.dayEventTime, fontSize: 9 }}>{range}</div>}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }

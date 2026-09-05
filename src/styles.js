@@ -221,11 +221,19 @@ export const S = {
   blockName: { fontWeight: 600, fontSize: 13 },
   blockMeta: { display: "flex", gap: 5, alignItems: "center", marginTop: 2 },
 
-  weekGrid: { display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 0, border: "1px solid var(--border-2)", borderRadius: 10 },
-  weekCol: { borderRight: "1px solid var(--border-soft)", minHeight: 180 },
-  weekDayHead: { textAlign: "center", padding: "8px 4px", borderBottom: "1px solid var(--border-soft)", color: "var(--text-dim)" },
-  weekEvents: { padding: 4 },
-  weekEvent: { background: "var(--surface)", borderRadius: 4, padding: "4px 6px", marginBottom: 3, fontSize: 11 },
+  // Weekly shares the daily view's time axis: same hour height, seven tracks.
+  weekWrap: { border: "1px solid var(--border-2)", borderRadius: 10, background: "var(--surface)", overflow: "hidden" },
+  weekHeadRow: { display: "flex", borderBottom: "1px solid var(--border-soft)", position: "sticky", top: 0, background: "var(--surface)", zIndex: 2 },
+  weekHeadSpacer: { width: 56, flexShrink: 0 },
+  weekDayHead: { flex: 1, minWidth: 0, textAlign: "center", padding: "8px 2px", borderLeft: "1px solid var(--border-soft)" },
+  weekBody: { display: "flex", padding: "12px 0 12px 0" },
+  weekCols: { display: "flex", flex: 1, minWidth: 0 },
+  weekColTrack: { position: "relative", flex: 1, minWidth: 0, borderLeft: "1px solid var(--border-soft)" },
+  weekEvent: { position: "absolute", boxSizing: "border-box", borderRadius: 5, padding: "2px 5px", overflow: "hidden", cursor: "pointer", fontSize: 11, lineHeight: 1.2 },
+
+  // The current-time marker, shown only on a track that is actually today.
+  nowLine: { position: "absolute", left: 0, right: 0, borderTop: "2px solid var(--danger)", zIndex: 3, pointerEvents: "none" },
+  nowDot: { position: "absolute", left: -4, top: -5, width: 8, height: 8, borderRadius: "50%", background: "var(--danger)" },
 
   monthHeader: { display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 0, marginBottom: 4 },
   monthDayLabel: { textAlign: "center", fontSize: 11, fontWeight: 600, color: "var(--text-ghost)", padding: 4 },
